@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: reparaya_web
+    ports:
+      - "8082:80"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - reparaya_network
+
+  db:
+    image: mysql:8.0
+    container_name: reparaya_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: reparaya
+      MYSQL_USER: reparaya_user
+      MYSQL_PASSWORD: reparaya_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+    networks:
+      - reparaya_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: reparaya_phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_ROOT_PASSWORD: root
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - reparaya_network
+
+networks:
+  reparaya_network:
+    driver: bridge
+
+volumes:
+  db_data:
