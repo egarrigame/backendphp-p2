@@ -194,4 +194,51 @@ class Incident extends Model {
         $stmt = $this->db->query("SELECT * FROM especialidades ORDER BY nombre_especialidad");
         return $stmt->fetchAll();
     }
+/**
+ * OBTENER TODAS LAS INCIDENCIAS CON DETALLES (PARA ADMIN)
+ * 
+ * @return array Lista de incidencias con datos de cliente, especialidad y técnico
+ */
+public function getAllWithDetails() {
+    $stmt = $this->db->prepare("
+        SELECT i.*, u.nombre as cliente_nombre, e.nombre_especialidad,
+               t.nombre_completo as tecnico_nombre
+        FROM incidencias i
+        LEFT JOIN usuarios u ON i.cliente_id = u.id
+        LEFT JOIN especialidades e ON i.especialidad_id = e.id
+        LEFT JOIN tecnicos t ON i.tecnico_id = t.id
+        ORDER BY i.fecha_servicio DESC
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+    /**
+     * OBTENER INCIDENCIAS PARA EL CALENDARIO
+     * 
+     * @param string $startDate Fecha de inicio (opcional)
+     * @param string $endDate Fecha de fin (opcional)
+     * @return array Lista de incidencias con datos de cliente y especialidad
+     */
+    public function getForCalendar($startDate = null, $endDate = null) {
+        $sql = "
+            SELECT i.*, u.nombre as cliente_nombre, e.nombre_especialidad
+            FROM incidencias i
+            LEFT JOIN usuarios u ON i.cliente_id = u.id
+            LEFT JOIN especialidades e ON i.especialidad_id = e.id
+            WHERE i.estado != 'Cancelada'
+        ";
+        
+        $params = [];
+        
+        if ($startDate && $endDate) {
+            $sql .= " AND i.fecha_servicio BETWEEN ? AND ?";
+            $params = [$startDate, $endDate];
+        }
+        
+        $sql .= " ORDER BY i.fecha_servicio ASC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }

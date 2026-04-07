@@ -38,11 +38,22 @@ $router->add('GET', 'my-incidents', 'IncidentController', 'myIncidents');
 $router->add('GET', 'new-incident', 'IncidentController', 'newIncident');
 $router->add('POST', 'new-incident', 'IncidentController', 'createIncident');
 $router->add('POST', 'cancel-incident', 'IncidentController', 'cancelIncident');
-
+// ============= RUTAS DE ADMINISTRADOR =============
+$router->add('GET', 'admin/dashboard', 'AdminController', 'dashboard');
+$router->add('GET', 'admin/tecnicos', 'AdminController', 'tecnicos');
+$router->add('POST', 'admin/tecnicos/create', 'AdminController', 'createTecnico');
+$router->add('POST', 'admin/tecnicos/update', 'AdminController', 'updateTecnico');
+$router->add('POST', 'admin/tecnicos/delete', 'AdminController', 'deleteTecnico');
+$router->add('GET', 'admin/incidencias', 'AdminController', 'incidencias');
+$router->add('POST', 'admin/incidencias/update', 'AdminController', 'updateIncident');
+$router->add('POST', 'admin/incidencias/cancel', 'AdminController', 'cancelIncident');
+$router->add('POST', 'admin/incidencias/assign', 'AdminController', 'assignTechnician');
+$router->add('GET', 'admin/calendar', 'AdminController', 'calendar');
 // ============= PROCESAR PETICIÓN =============
 $method = $_SERVER['REQUEST_METHOD'];
-$uri = $_SERVER['REQUEST_URI'];
+$requestUri = $_SERVER['REQUEST_URI'];
+// Eliminar parámetros GET (todo lo que viene después de ?)
+$uri = strtok($requestUri, '?');
 $uri = str_replace('/index.php', '', $uri);
 $uri = ltrim($uri, '/');
-
 $router->dispatch($method, $uri);
