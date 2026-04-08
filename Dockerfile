@@ -4,6 +4,9 @@ FROM php:8.2-apache
 # módulo de apache para escribir las urls de Laravel más sencillas 
 RUN a2enmod rewrite
 
+# hacemos que apache acepte el htaccess
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
 # instalamos las extensiones y paquetes para laravel
 # git y unzip para descargar y descomprimir librerías
 # libzip para que php pueda trabajar con zips

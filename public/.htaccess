@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c> // Módulo reescritura de urls
+    # Encender el motor // Poder manipular las url
+    RewriteEngine On
+    
+    # Excepciones // Si no son o archivos o directorios, no lo enviamos a index (imagenes...)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Redirección a index
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
