@@ -36,20 +36,5 @@ services:  # se definen los tres contenedores: 'web' para el servidor web, 'db' 
     depends_on:
       - db
 
-  wordpress:
-    image: wordpress:latest  # viene con php y apache
-    container_name: bep_wp
-    ports:
-      - "8082:80"
-    environment:
-      WORDPRESS_DB_HOST: db  # conexión con nuestro host de bbdd
-      WORDPRESS_DB_USER: root
-      WORDPRESS_DB_PASSWORD: rootpassword
-      WORDPRESS_DB_NAME: bbdd_wordpress  # bbdd creada en pohpmyadmin
-    volumes:
-      - ./src_wp:/var/www/html  # creamos esta carpeta para tenerlo a parte para cuando se suban a cloud
-    depends_on:
-      - db
-
 volumes:
   db_data:  # definición del volumen que referenciamos en el contenedor 'db' para guardar los datos de mysql
