@@ -39,6 +39,7 @@ class DashboardController {
             $this->render('panel_admin', $datos);
 
         } elseif ($rol === 'tecnico') {
+            $datos['mis_trabajos'] = $incidenciaModel->obtenerPorTecnico($_SESSION['usuario_id']);
             $this->render('panel_tecnico', $datos);
 
         } else {
@@ -46,6 +47,20 @@ class DashboardController {
             $datos['mis_incidencias'] = $incidenciaModel->obtenerPorCliente($cliente_id);
             $this->render('panel_cliente', $datos);
         }
+    }
+
+    public function calendario() { // método para mostrar el calendario a admins
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+            header('Location: /login');
+            exit();
+        }
+
+        $datos = [
+            'titulo' => 'Calendario General - ReparaYa',
+            'nombre' => $_SESSION['usuario_nombre']
+        ];
+        
+        $this->render('calendario_admin', $datos);
     }
 
     private function render($vista, $datos = []) { // método para cargar las vistas

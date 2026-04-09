@@ -107,4 +107,26 @@ class Incidencia {
             return false;
         }
     }
+
+    public function obtenerPorTecnico($usuario_id) { // método para obtener incidecnais por te´cnico
+        $sql = "SELECT i.*, 
+                       u.nombre AS nombre_cliente,
+                       u.telefono AS telefono_cliente,
+                       e.nombre_estado, 
+                       e.color_calendario, 
+                       esp.nombre_especialidad
+                FROM incidencias i
+                INNER JOIN tecnicos t ON i.tecnico_id = t.id
+                INNER JOIN usuarios u ON i.cliente_id = u.id
+                INNER JOIN estados e ON i.estado_id = e.id
+                INNER JOIN especialidades esp ON i.especialidad_id = esp.id
+                WHERE t.usuario_id = :usuario_id
+                ORDER BY i.fecha_servicio ASC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':usuario_id', $usuario_id);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

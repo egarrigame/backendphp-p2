@@ -10,10 +10,11 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">ReparaYa</a>
+        <a class="navbar-brand" href="/">ReparaYa - ADMIN</a>
         <div class="d-flex align-items-center">
             <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
-            <button class="btn btn-warning btn-sm me-2">Calendario</button>
+            <a href="/calendario" class="btn btn-warning btn-sm me-2">Ver calendario</a>
+            <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
             <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
         </div>
     </div>

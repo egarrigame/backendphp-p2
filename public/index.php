@@ -18,4 +18,10 @@ $router->get('/panel', 'DashboardController', 'index');
 $router->post('/nueva-incidencia', 'IncidenciaController', 'guardar');
 $router->post('/actualizar-incidencia', 'IncidenciaController', 'actualizar');
 
+$router->get('/calendario', 'DashboardController', 'calendario');
+$router->get('/api/incidencias', 'IncidenciaController', 'apiTodas');
+
+$router->get('/perfil', 'PerfilController', 'index');
+$router->post('/perfil', 'PerfilController', 'guardar');
+
 $router->despachar(); // Que Router ea la URL y ejecute lo necesario

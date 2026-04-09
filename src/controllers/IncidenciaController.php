@@ -71,4 +71,44 @@ class IncidenciaController {
         }
         exit();
     }
+
+    public function apiTodas() { // API para traer datos de la bbdd en JSON y formatear calendario
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+            header('HTTP/1.1 403 Forbidden');
+            echo json_encode(['error' => 'No autorizado']);
+            exit();
+        }
+
+        // traemos los datos
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+        
+        $incidencias = $incidenciaModel->obtenerTodas();
+
+        $eventos = []; // fromatear el calendar
+        foreach ($incidencias as $inc) {
+            $color = ($inc['tipo_urgencia'] === 'Urgente') ? '#dc3545' : '#0d6efd'; // Rojo urgente, Azul estándar
+
+            $eventos[] = [
+                'id' => $inc['id'],
+                'title' => $inc['nombre_especialidad'] . ' - ' . $inc['localizador'],
+                'start' => $inc['fecha_servicio'],
+                'color' => $color,
+                'extendedProps' => [
+                    'cliente' => $inc['nombre_cliente'],
+                    'direccion' => $inc['direccion'],
+                    'descripcion' => $inc['descripcion'],
+                    'estado' => $inc['nombre_estado'],
+                    'tecnico' => $inc['nombre_tecnico'] ?? 'Sin asignar',
+                    'urgencia' => $inc['tipo_urgencia']
+                ]
+            ];
+        }
+
+        header('Content-Type: application/json'); // devuelve JSON
+        echo json_encode($eventos);
+        exit();
+    }
 }

@@ -50,4 +50,34 @@ class Usuario {
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function obtenerPorId($id) { // método para obtener los datos del usuario
+        $sql = "SELECT id, nombre, email, rol FROM usuarios WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarPerfil($id, $nombre, $email, $password = null) { // método para actualizar los datos
+        try {
+            if (!empty($password)) { // actualización de contraseña con bycrypt
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "UPDATE usuarios SET nombre = :nombre, email = :email, password = :password WHERE id = :id";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bindParam(':password', $passwordHash);
+            } else {
+                $sql = "UPDATE usuarios SET nombre = :nombre, email = :email WHERE id = :id";
+                $stmt = $this->db->prepare($sql);
+            }
+
+            $stmt->bindParam(':nombre', $nombre);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':id', $id);
+
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }

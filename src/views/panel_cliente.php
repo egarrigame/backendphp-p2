@@ -10,7 +10,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">ReparaYa</a>
+        <a class="navbar-brand" href="/">ReparaYa - PARTICULAR</a>
         <div class="d-flex align-items-center">
             <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
             <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
