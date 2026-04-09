@@ -13,8 +13,16 @@
     <div class="container">
         <a class="navbar-brand" href="/">ReparaYa</a>
         <div class="d-flex">
-            <a href="/login" class="btn btn-outline-light me-2">Iniciar Sesión</a>
-            <a href="/registro" class="btn btn-light">Registrarse</a>
+            <?php if (isset($_SESSION['usuario_id'])): ?>
+                <span class="text-white me-3">
+                    Hola, <b><?= htmlspecialchars($_SESSION['usuario_nombre']) ?></b> 
+                    <span class="badge bg-info text-dark ms-1"><?= htmlspecialchars($_SESSION['usuario_rol']) ?></span>
+                </span>
+                <a href="/logout" class="btn btn-danger">Cerrar sesión</a>
+            <?php else: ?>
+                <a href="/login" class="btn btn-outline-light me-2">Iniciar sesión</a>
+                <a href="/registro" class="btn btn-light">Registrarse</a>
+            <?php endif; ?>
         </div>
     </div>
 </nav>
