@@ -32,13 +32,22 @@ class Router {
             $nombreControlador = $ruta['controlador'];
             $nombreMetodo = $ruta['metodo'];
 
-            // TEST TEXT xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-            echo "<div style='background: #e3f2fd; padding: 20px; border-radius: 8px; font-family: sans-serif;'>";
-            echo "<h2>🚦 El Router está funcionando</h2>";
-            echo "<p>Has pedido la URL: <b>$url</b></p>";
-            echo "<p>El sistema intentará cargar el controlador: <b>$nombreControlador</b></p>";
-            echo "<p>Y ejecutará la función: <b>$nombreMetodo</b></p>";
-            echo "</div>";
+            $rutaControlador = '../src/controllers/' . $nombreControlador . '.php'; // ruta física hasta el archivo de controlador
+            if (file_exists($rutaControlador)) { // comprobamos que el archivo exista
+                
+                require_once $rutaControlador; // importamos el archivo
+                $controladorObj = new $nombreControlador(); // instanciamos el controlador
+
+                if (method_exists($controladorObj, $nombreMetodo)) { // comprobamos que la función exista
+                    $controladorObj->$nombreMetodo(); // ejecutamos el método del controlador
+                } else {
+                    echo "<h3>Error de Código 500</h3>";
+                    echo "<p>El Controlador existe, pero no tiene una función llamada <b>$nombreMetodo</b>.</p>";
+                }
+            } else {
+                echo "<h3>Error de Código 500</h3>";
+                echo "<p>El Router intentó cargar <b>$rutaControlador</b> pero el archivo no existe.</p>";
+            }
             
         } else {
             http_response_code(404); // si la url no existe, mandamos error de php
