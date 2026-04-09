@@ -73,7 +73,7 @@ class AuthController {
             $_SESSION['usuario_nombre'] = $usuarioLogueado['nombre'];
             $_SESSION['usuario_rol'] = $usuarioLogueado['rol'];
 
-            header('Location: /'); // redirigimos a home
+            header('Location: /panel'); // redirigimos a dashboard
             exit();
         } else {
             $this->render('login', [

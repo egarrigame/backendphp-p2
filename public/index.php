@@ -14,4 +14,7 @@ $router->get('/login', 'AuthController', 'mostrarLogin');
 $router->post('/login', 'AuthController', 'procesarLogin');
 $router->get('/logout', 'AuthController', 'cerrarSesion');
 
+$router->get('/panel', 'DashboardController', 'index');
+$router->post('/nueva-incidencia', 'IncidenciaController', 'guardar');
+
 $router->despachar(); // Que Router ea la URL y ejecute lo necesario
