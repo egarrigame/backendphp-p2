@@ -16,5 +16,6 @@ $router->get('/logout', 'AuthController', 'cerrarSesion');
 
 $router->get('/panel', 'DashboardController', 'index');
 $router->post('/nueva-incidencia', 'IncidenciaController', 'guardar');
+$router->post('/actualizar-incidencia', 'IncidenciaController', 'actualizar');
 
 $router->despachar(); // Que Router ea la URL y ejecute lo necesario

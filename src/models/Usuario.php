@@ -42,4 +42,12 @@ class Usuario {
         }
         return false;
     }
+
+    public function obtenerClientes() { // método para obtener usuarios
+        $sql = "SELECT id, nombre, email FROM usuarios WHERE rol = 'particular' ORDER BY nombre ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

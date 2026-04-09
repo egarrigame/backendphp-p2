@@ -54,4 +54,57 @@ class Incidencia {
             return false;
         }
     }
+
+    public function obtenerTodas() { // método para tener todas las incidencias par admins
+        $sql = "SELECT i.*, 
+                       u.nombre AS nombre_cliente,
+                       e.nombre_estado, 
+                       e.color_calendario, 
+                       esp.nombre_especialidad,
+                       t.nombre_completo AS nombre_tecnico
+                FROM incidencias i
+                INNER JOIN usuarios u ON i.cliente_id = u.id
+                INNER JOIN estados e ON i.estado_id = e.id
+                INNER JOIN especialidades esp ON i.especialidad_id = esp.id
+                LEFT JOIN tecnicos t ON i.tecnico_id = t.id
+                ORDER BY i.fecha_servicio DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerTecnicos() { // método para obtener todos los te´cnicos
+        $sql = "SELECT id, nombre_completo, especialidad_id FROM tecnicos ORDER BY nombre_completo ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerEstados() { // método para obtener todos los estados
+        $sql = "SELECT id, nombre_estado FROM estados ORDER BY id ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizar($id, $tecnico_id, $estado_id) { // método para poder actualizar incidencias
+        try {
+            $tecnico_id = !empty($tecnico_id) ? $tecnico_id : null;
+
+            $sql = "UPDATE incidencias 
+                    SET tecnico_id = :tecnico_id, estado_id = :estado_id 
+                    WHERE id = :id";
+            
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                ':tecnico_id' => $tecnico_id,
+                ':estado_id' => $estado_id,
+                ':id' => $id
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }

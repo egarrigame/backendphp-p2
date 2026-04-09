@@ -10,31 +10,40 @@ class DashboardController {
         }
 
         $rol = $_SESSION['usuario_rol'];
+        $cliente_id = $_SESSION['usuario_id'];
         $datos = [
             'titulo' => 'Mi Panel',
             'nombre' => $_SESSION['usuario_nombre']
         ];
 
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+
+        $datos['mensajeExito'] = $_GET['exito'] ?? null;
+        $datos['error'] = $_GET['error'] ?? null;
+
+        if (!function_exists('conectarDB')) {
+            echo "Error: Falta la conexión a la base de datos."; return;
+        }
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
         if ($rol === 'admin') { // check de roles
+            require_once '../src/models/Usuario.php';
+            $usuarioModel = new Usuario($db);
+            $datos['todas_incidencias'] = $incidenciaModel->obtenerTodas();
+            $datos['especialidades'] = $incidenciaModel->obtenerEspecialidades();
+            $datos['clientes'] = $usuarioModel->obtenerClientes();
+            $datos['tecnicos'] = $incidenciaModel->obtenerTecnicos();
+            $datos['estados'] = $incidenciaModel->obtenerEstados();
             $this->render('panel_admin', $datos);
+
         } elseif ($rol === 'tecnico') {
             $this->render('panel_tecnico', $datos);
-        } else {
-            require_once '../src/config/database.php';
-            require_once '../src/models/Incidencia.php';
-            
-            if (!function_exists('conectarDB')) {
-                echo "Error: Falta la conexión a la base de datos."; return;
-            }
-            
-            $db = conectarDB();
-            $incidenciaModel = new Incidencia($db);
-            $cliente_id = $_SESSION['usuario_id'];
-            $datos['especialidades'] = $incidenciaModel->obtenerEspecialidades(); // obtenemos los datos dinámicos del modelo de incidencia
-            $datos['mis_incidencias'] = $incidenciaModel->obtenerPorCliente($cliente_id);
-            $datos['mensajeExito'] = $_GET['exito'] ?? null;
-            $datos['error'] = $_GET['error'] ?? null;
 
+        } else {
+            $datos['especialidades'] = $incidenciaModel->obtenerEspecialidades();
+            $datos['mis_incidencias'] = $incidenciaModel->obtenerPorCliente($cliente_id);
             $this->render('panel_cliente', $datos);
         }
     }
