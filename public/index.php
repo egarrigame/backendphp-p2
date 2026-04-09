@@ -49,6 +49,11 @@ $router->add('POST', 'admin/incidencias/update', 'AdminController', 'updateIncid
 $router->add('POST', 'admin/incidencias/cancel', 'AdminController', 'cancelIncident');
 $router->add('POST', 'admin/incidencias/assign', 'AdminController', 'assignTechnician');
 $router->add('GET', 'admin/calendar', 'AdminController', 'calendar');
+// ============= RUTAS DE PERFIL =============
+$router->add('GET', 'profile', 'UserController', 'profile');
+$router->add('POST', 'profile', 'UserController', 'updateProfile');
+$router->add('GET', 'change-password', 'UserController', 'showChangePassword');
+$router->add('POST', 'change-password', 'UserController', 'changePassword');
 // ============= PROCESAR PETICIÓN =============
 $method = $_SERVER['REQUEST_METHOD'];
 $requestUri = $_SERVER['REQUEST_URI'];

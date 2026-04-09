@@ -66,6 +66,7 @@ class User extends Model {
         session_destroy();
     }
     
+  
     /**
      * Obtener usuario por ID
      */
@@ -73,5 +74,30 @@ class User extends Model {
         $stmt = $this->db->prepare("SELECT * FROM usuarios WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
+    }
+    /**
+     * Actualizar perfil del usuario (nombre, email, teléfono)
+     */
+    public function updateProfile($id, $data) {
+        $stmt = $this->db->prepare("
+            UPDATE usuarios 
+            SET nombre = :nombre, email = :email, telefono = :telefono 
+            WHERE id = :id
+        ");
+        
+        return $stmt->execute([
+            'id' => $id,
+            'nombre' => $data['nombre'],
+            'email' => $data['email'],
+            'telefono' => $data['telefono']
+        ]);
+    }
+    /**
+     * Cambiar contraseña del usuario
+     */
+    public function updatePassword($id, $newPassword) {
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->db->prepare("UPDATE usuarios SET password = ? WHERE id = ?");
+        return $stmt->execute([$hashedPassword, $id]);
     }
 }
