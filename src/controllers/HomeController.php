@@ -5,7 +5,11 @@ class HomeController {
     
     
     public function index() { // método para llamar al router cuando alguien entre en index
-        
+        if (isset($_SESSION['usuario_id'])) {
+            header('Location: /panel');
+            exit();
+        }    
+
         $datos = [
             'titulo' => 'Bienvenido a ReparaYa',
             'mensaje' => 'Aplicación de gestión de averías domésticas.'

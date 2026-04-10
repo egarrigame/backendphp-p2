@@ -76,7 +76,14 @@ class Incidencia {
     }
 
     public function obtenerTecnicos() { // método para obtener todos los te´cnicos
-        $sql = "SELECT id, nombre_completo, especialidad_id FROM tecnicos ORDER BY nombre_completo ASC";
+        $sql = "SELECT t.id, 
+                       t.nombre_completo, 
+                       t.especialidad_id, 
+                       t.disponible, 
+                       e.nombre_especialidad 
+                FROM tecnicos t
+                INNER JOIN especialidades e ON t.especialidad_id = e.id
+                ORDER BY t.nombre_completo ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -89,23 +96,38 @@ class Incidencia {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function actualizar($id, $tecnico_id, $estado_id) { // método para poder actualizar incidencias
+    public function actualizar($id, $tecnico_id, $estado_id, $fecha_servicio, $tipo_urgencia, $direccion, $descripcion) { // método para poder actualizar incidencia
         try {
             $tecnico_id = !empty($tecnico_id) ? $tecnico_id : null;
 
             $sql = "UPDATE incidencias 
-                    SET tecnico_id = :tecnico_id, estado_id = :estado_id 
+                    SET tecnico_id = :tecnico_id, 
+                        estado_id = :estado_id,
+                        fecha_servicio = :fecha,
+                        tipo_urgencia = :urgencia,
+                        direccion = :direccion,
+                        descripcion = :descripcion
                     WHERE id = :id";
             
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
                 ':tecnico_id' => $tecnico_id,
                 ':estado_id' => $estado_id,
+                ':fecha' => $fecha_servicio,
+                ':urgencia' => $tipo_urgencia,
+                ':direccion' => $direccion,
+                ':descripcion' => $descripcion,
                 ':id' => $id
             ]);
         } catch (PDOException $e) {
             return false;
         }
+    }
+
+    public function eliminar($id) { // méotod para poder eliminar una incidecnia
+        $sql = "DELETE FROM incidencias WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':id' => $id]);
     }
 
     public function obtenerPorTecnico($usuario_id) { // método para obtener incidecnais por te´cnico
@@ -128,5 +150,22 @@ class Incidencia {
         $stmt->execute();
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerPorId($id) { // método para buscar incidencia concreta
+        $sql = "SELECT * FROM incidencias WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function cancelarPorCliente($id, $cliente_id) { // método para cambiar estado a cancelada
+        $sql = "UPDATE incidencias SET estado_id = 5 WHERE id = :id AND cliente_id = :cliente_id"; // seguridad del propio cliente
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':id' => $id,
+            ':cliente_id' => $cliente_id
+        ]);
     }
 }

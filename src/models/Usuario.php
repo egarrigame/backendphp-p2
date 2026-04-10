@@ -80,4 +80,47 @@ class Usuario {
             return false;
         }
     }
+
+    public function crearTecnico($nombre, $email, $telefono, $password, $especialidad_id) { // método para crear un técnico como admin
+        try {
+            $this->db->beginTransaction();
+
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT); // creación del user con login
+            $sql1 = "INSERT INTO usuarios (nombre, email, password, rol) VALUES (:nombre, :email, :password, 'tecnico')";
+            $stmt1 = $this->db->prepare($sql1);
+            $stmt1->execute([
+                ':nombre' => $nombre,
+                ':email' => $email,
+                ':telefono' => $telefono,
+                ':password' => $passwordHash
+            ]);
+            
+            $nuevo_usuario_id = $this->db->lastInsertId(); // id de mysql
+
+            // creación de la ficha del nuevo user tecnico
+            $sql2 = "INSERT INTO tecnicos (usuario_id, nombre_completo, especialidad_id, disponible) VALUES (:uid, :nombre, :esp_id, 1)";
+            $stmt2 = $this->db->prepare($sql2);
+            $stmt2->execute([
+                ':uid' => $nuevo_usuario_id,
+                ':nombre' => $nombre,
+                ':esp_id' => $especialidad_id
+            ]);
+
+            $this->db->commit(); // confrimamos cambios y creamos
+            return true;
+            
+        } catch (PDOException $e) { // si hay un error, rollback completo
+            $this->db->rollBack();
+            return false;
+        }
+    }
+
+    public function actualizarEstadoTecnico($tecnico_id, $nuevo_estado) { // método para cambiar el estado de un te´cnico por admin
+        $sql = "UPDATE tecnicos SET disponible = :estado WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':estado' => $nuevo_estado,
+            ':id' => $tecnico_id
+        ]);
+    }
 }

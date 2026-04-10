@@ -1,0 +1,2221 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+docker-compose.yml
+Dockerfile
+public/.htaccess
+public/index.php
+README.md
+src/config/database.php
+src/controllers/AuthController.php
+src/controllers/DashboardController.php
+src/controllers/HomeController.php
+src/controllers/IncidenciaController.php
+src/controllers/MaestrosController.php
+src/controllers/PerfilController.php
+src/core/Router.php
+src/models/Incidencia.php
+src/models/Usuario.php
+src/views/calendario_admin.php
+src/views/home.php
+src/views/login.php
+src/views/panel_admin.php
+src/views/panel_cliente.php
+src/views/panel_maestros.php
+src/views/panel_tecnico.php
+src/views/perfil.php
+src/views/registro.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/controllers/MaestrosController.php">
+<?php
+// src/controllers/MaestrosController.php
+
+class MaestrosController {
+
+    public function index() {
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+            header('Location: /login');
+            exit();
+        }
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        $datos = [
+            'titulo' => 'Maestros - ReparaYa',
+            'tecnicos' => $incidenciaModel->obtenerTecnicos(),
+            'especialidades' => $incidenciaModel->obtenerEspecialidades(),
+            'mensajeExito' => $_GET['exito'] ?? null,
+            'error' => $_GET['error'] ?? null
+        ];
+
+        $this->render('panel_maestros', $datos);
+    }
+
+    public function guardarTecnico() {
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+            exit();
+        }
+
+        $nombre = $_POST['nombre'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $telefono = $_POST['telefono'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $especialidad_id = $_POST['especialidad_id'] ?? '';
+
+        if(empty($nombre) || empty($email) || empty($telefono) || empty($password) || empty($especialidad_id)) {
+            header('Location: /maestros?error=Faltan datos obligatorios');
+            exit();
+        }
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Usuario.php';
+        $db = conectarDB();
+        $usuarioModel = new Usuario($db);
+
+        $exito = $usuarioModel->crearTecnico($nombre, $email, $telefono, $password, $especialidad_id);
+
+        if ($exito) {
+            header('Location: /maestros?exito=Técnico dado de alta correctamente');
+        } else {
+            header('Location: /maestros?error=Error al guardar.');
+        }
+        exit();
+    }
+
+    public function cambiarEstado() {
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') exit();
+
+        $tecnico_id = $_POST['tecnico_id'] ?? '';
+        $estado_actual = $_POST['estado_actual'] ?? '0';
+        $nuevo_estado = ($estado_actual == '1') ? 0 : 1;
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Usuario.php';
+        $db = conectarDB();
+        $usuarioModel = new Usuario($db);
+
+        if ($usuarioModel->actualizarEstadoTecnico($tecnico_id, $nuevo_estado)) {
+            header('Location: /maestros?exito=Estado del técnico actualizado');
+        } else {
+            header('Location: /maestros?error=Error al cambiar el estado');
+        }
+        exit();
+    }
+
+    private function render($vista, $datos = []) {
+        extract($datos);
+        require_once '../src/views/' . $vista . '.php';
+    }
+}
+</file>
+
+<file path="src/views/panel_maestros.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/">ReparaYa - ADMIN</a>
+        <div class="d-flex align-items-center">
+            <a href="/panel" class="btn btn-outline-light btn-sm me-2">Volver al panel</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Gestión técnicos</h2>
+
+    <?php if (!empty($mensajeExito)): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($mensajeExito) ?></div>
+    <?php endif; ?>
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                    <span>Plantilla de técnicos</span>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoTecnico">Alta técnico</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Especialidad</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if(empty($tecnicos)): ?>
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">No hay técnicos en la plantilla.</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach($tecnicos as $tec): ?>
+                                        <tr>
+                                            <td class="text-muted fw-bold">#<?= $tec['id'] ?></td>
+                                            <td class="fw-bold"><?= htmlspecialchars($tec['nombre_completo']) ?></td>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    <?= htmlspecialchars($tec['nombre_especialidad']) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php if($tec['disponible']): ?>
+                                                    <span class="badge bg-success">Activo</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-danger">Baja</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <form action="/maestros/cambiar-estado" method="POST" style="display:inline;">
+                                                    <input type="hidden" name="tecnico_id" value="<?= $tec['id'] ?>">
+                                                    <input type="hidden" name="estado_actual" value="<?= $tec['disponible'] ?>">
+                                                    <button type="submit" class="btn btn-sm <?= $tec['disponible'] ? 'btn-outline-danger' : 'btn-outline-success' ?>">
+                                                        <?= $tec['disponible'] ? 'Dar de Baja' : 'Dar de Alta' ?>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoTecnico" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/maestros/nuevo-tecnico" method="POST" class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Alta técnico</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" name="nombre" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Correo</label>
+                    <input type="email" class="form-control" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Teléfono de contacto</label>
+                    <input type="text" class="form-control" name="telefono" placeholder="Ej: 600 000 000" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Especialidad</label>
+                    <select class="form-select" name="especialidad_id" required>
+                        <?php foreach($especialidades as $esp): ?>
+                            <option value="<?= $esp['id'] ?>"><?= htmlspecialchars($esp['nombre_especialidad']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Crear técnico</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+</file>
+
+<file path=".gitignore">
+# =========================================
+# 1. REGLAS PARA LARAVEL (/src)
+# =========================================
+# Bloquear dependencias masivas (miles de archivos)
+src/vendor/
+src/node_modules/
+# Bloquear credenciales y cachés
+src/.env
+src/.env.backup
+src/bootstrap/cache/
+src/storage/
+src/public/build/
+src/public/hot
+
+# =========================================
+# 2. REGLAS PARA WORDPRESS (/src_wp)
+# =========================================
+# Bloquear el núcleo de WordPress (miles de archivos innecesarios)
+src_wp/wp-admin/
+src_wp/wp-includes/
+# Bloquear todos los archivos PHP base de la raíz de WP...
+src_wp/*.php
+# ...EXCEPTO los archivos de configuración que sí necesitamos:
+!src_wp/wp-config-docker.php
+!src_wp/wp-config-sample.php
+
+# Bloquear imágenes o archivos subidos desde el panel de WP
+src_wp/wp-content/uploads/
+# Bloquear traducciones y cachés de WP
+src_wp/wp-content/languages/
+src_wp/wp-content/cache/
+
+# =========================================
+# 3. REGLAS DE DOCKER Y SISTEMA
+# =========================================
+# Bases de datos de Docker (¡pesan muchísimo!)
+mysql/
+db_data/
+postgres_data/
+
+# Archivos de Windows/Mac
+.DS_Store
+Thumbs.db
+</file>
+
+<file path="public/.htaccess">
+<IfModule mod_rewrite.c> // Módulo reescritura de urls
+    # Encender el motor // Poder manipular las url
+    RewriteEngine On
+    
+    # Excepciones // Si no son o archivos o directorios, no lo enviamos a index (imagenes...)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Redirección a index
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+</file>
+
+<file path="README.md">
+# backendphp-p2
+</file>
+
+<file path="src/config/database.php">
+<?php
+// src/config/database.php
+
+/**
+ * Configuraciรณn de la conexiรณn a la base de datos
+ */
+
+// Credenciales bbdd
+// Docker local
+define('DB_HOST', 'db'); // El nombre del servicio del docker-compose
+define('DB_NAME', 'backend_ddbb');
+define('DB_USER', 'backend_user');
+define('DB_PASS', 'backend_userpassword');
+define('DB_CHARSET', 'utf8mb4');
+
+/**
+ * Funciรณn tener la instacia de la conexiรณn (Singleton para evitar conexiones simultรกneas)
+ * * @return PDO La conexiรณn a la base de datos.
+ */
+function conectarDB(): PDO {
+    static $pdo = null; // Variable para almacenar la conexiรณn (singleton), la primera vez es null, despuรฉs tendrรก la conexiรณn creada
+
+    if ($pdo === null) { // si no existe la conexiรณn, la creamos
+        try {
+            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET; // data source name - las credenciales
+            $options = [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // lanzamos errores en caso de fallos
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // que PDO devuelva arrays asociativos (campo - valor)     
+                PDO::ATTR_EMULATE_PREPARES   => false, // desactivar sentencvias preparadas, usar nativas del motor de bbdd para mayor seguridad                 
+            ];
+
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options); // instancias de PDO para conectar la bbdd
+
+        } catch (PDOException $e) {
+            die("Error de conexiรณn a la base de datos: " . $e->getMessage()); // si algo falla, detenemos ejecuciรณn y mostramos el error
+        }
+    }
+
+    return $pdo;
+}
+</file>
+
+<file path="src/controllers/HomeController.php">
+<?php
+// src/controllers/HomeController.php
+
+class HomeController {
+    
+    
+    public function index() { // método para llamar al router cuando alguien entre en index
+        if (isset($_SESSION['usuario_id'])) {
+            header('Location: /panel');
+            exit();
+        }    
+
+        $datos = [
+            'titulo' => 'Bienvenido a ReparaYa',
+            'mensaje' => 'Aplicación de gestión de averías domésticas.'
+        ];
+
+        $this->render('home', $datos); //método para buscar y cargar el html
+    }
+
+    private function render($vista, $datos = []) { // helper para cargar el html en lugar de hacer require en cada método, le pasamos el nombre de la vista y array de datos y busca el archivo en la carpeta de vistas e inyecta las variables con la función extract
+
+        extract($datos); // sacamos variables de los array para convertirlas en variables normales y usarlas en el html, ej: $datos['titulo'] pasa a título
+
+        $rutaVista = '../src/views/' . $vista . '.php'; // ruta física para cargar la vista
+
+        if (file_exists($rutaVista)) { // comprobamos que la vista existe
+            require_once $rutaVista;
+        } else {
+            echo "Error Crítico: No se encuentra la vista $rutaVista";
+        }
+    }
+}
+</file>
+
+<file path="src/controllers/PerfilController.php">
+<?php
+// src/controllers/PerfilController.php
+
+class PerfilController {
+
+    public function index() { // méotod para mostrar el form de cambio de datos del perfil
+        if (!isset($_SESSION['usuario_id'])) {
+            header('Location: /login');
+            exit();
+        }
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Usuario.php';
+        $db = conectarDB();
+        $usuarioModel = new Usuario($db);
+
+        $datos = [
+            'titulo' => 'Mi Perfil - ReparaYa',
+            'usuario' => $usuarioModel->obtenerPorId($_SESSION['usuario_id']),
+            'mensajeExito' => $_GET['exito'] ?? null,
+            'error' => $_GET['error'] ?? null
+        ];
+
+        $this->render('perfil', $datos);
+    }
+
+    public function guardar() { // método para procesar los cambios (petición POST)
+        if (!isset($_SESSION['usuario_id'])) {
+            header('Location: /login');
+            exit();
+        }
+
+        $id = $_SESSION['usuario_id'];
+        $nombre = $_POST['nombre'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? ''; // Opcional
+
+        if (empty($nombre) || empty($email)) {
+            header('Location: /perfil?error=El nombre y el email son obligatorios.');
+            exit();
+        }
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Usuario.php';
+        $db = conectarDB();
+        $usuarioModel = new Usuario($db);
+
+        $exito = $usuarioModel->actualizarPerfil($id, $nombre, $email, $password);
+
+        if ($exito) {
+            $_SESSION['usuario_nombre'] = $nombre; // actualizamos la sesión si cambia el nombre (está en display en el navbar)
+            
+            header('Location: /perfil?exito=Perfil actualizado correctamente.');
+        } else {
+            header('Location: /perfil?error=Error al actualizar. Quizás el email ya esté en uso.');
+        }
+        exit();
+    }
+
+    private function render($vista, $datos = []) {
+        extract($datos);
+        require_once '../src/views/' . $vista . '.php';
+    }
+}
+</file>
+
+<file path="src/views/calendario_admin.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/">ReparaYa</a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
+            <a href="/panel" class="btn btn-outline-light btn-sm me-2">📋 Ver tabla</a>
+            <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
+            <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Calendario</h2>
+        <div>
+            <span class="badge bg-primary me-2">Estándar</span>
+            <span class="badge bg-danger">Urgente</span>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm border-0 p-3">
+        <div id='calendar'></div>
+    </div>
+</div>
+
+<div class="modal fade" id="eventoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="eventoTitulo">Detalles</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Cliente:</strong> <span id="eventoCliente"></span></p>
+                <p><strong>Dirección:</strong> <span id="eventoDireccion"></span></p>
+                <p><strong>Estado:</strong> <span id="eventoEstado"></span></p>
+                <p><strong>Técnico:</strong> <span id="eventoTecnico"></span></p>
+                <hr>
+                <p><strong>Descripción:</strong></p>
+                <p id="eventoDescripcion" class="text-muted"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay' // vistas
+        },
+        events: '/api/incidencias', // nuestra api de php
+        
+        eventClick: function(info) { // click al detalle con los props
+            info.jsEvent.preventDefault(); 
+            
+            document.getElementById('eventoTitulo').innerText = info.event.title;
+            document.getElementById('eventoCliente').innerText = info.event.extendedProps.cliente;
+            document.getElementById('eventoDireccion').innerText = info.event.extendedProps.direccion;
+            document.getElementById('eventoEstado').innerText = info.event.extendedProps.estado;
+            document.getElementById('eventoTecnico').innerText = info.event.extendedProps.tecnico;
+            document.getElementById('eventoDescripcion').innerText = info.event.extendedProps.descripcion;
+            
+            var myModal = new bootstrap.Modal(document.getElementById('eventoModal'));
+            myModal.show();
+        }
+    });
+    
+    calendar.render();
+});
+</script>
+</body>
+</html>
+</file>
+
+<file path="src/views/login.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/">ReparaYa</a>
+        <div class="d-flex">
+            <a href="/registro" class="btn btn-outline-light">Registrarse</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            
+            <?php if (!empty($mensajeExito)): ?>
+                <div class="alert alert-success text-center" role="alert">
+                    <?= htmlspecialchars($mensajeExito) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-danger text-center" role="alert">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white text-center py-3">
+                    <h4 class="mb-0 text-primary">Iniciar sesión</h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form action="/login" method="POST">
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+                        </div>
+
+                    </form>
+
+                </div>
+                <div class="card-footer bg-white text-center py-3">
+                    <small>¿No tienes cuenta? <a href="/registro">Regístrate</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+</file>
+
+<file path="src/views/panel_tecnico.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/">ReparaYa - TÉCNICO</a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
+            <a href="/perfil" class="btn btn-outline-light btn-sm me-2">Perfil</a>
+            <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Mi calendario de trabajo</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white text-success fw-bold">
+            Servicios asignados
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha y hora</th>
+                            <th>Localizador</th>
+                            <th>Urgencia</th>
+                            <th>Cliente y contacto</th>
+                            <th>Dirección</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if(empty($mis_trabajos)): ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <h5 class="fw-normal">No tienes servicios asignados.</h5>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach($mis_trabajos as $trabajo): ?>
+                                <tr>
+                                    <td class="fw-bold text-nowrap"><?= date('d/m/Y H:i', strtotime($trabajo['fecha_servicio'])) ?></td>
+                                    <td><?= htmlspecialchars($trabajo['localizador']) ?></td>
+                                    <td>
+                                        <?php if($trabajo['tipo_urgencia'] === 'Urgente'): ?>
+                                            <span class="badge bg-danger">Urgente</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Estándar</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?= htmlspecialchars($trabajo['nombre_cliente']) ?><br>
+                                        <small class="text-muted">📞 <?= htmlspecialchars($trabajo['telefono_cliente'] ?? 'Sin teléfono') ?></small>
+                                    </td>
+                                    <td><?= htmlspecialchars($trabajo['direccion']) ?></td>
+                                    <td><small><?= htmlspecialchars($trabajo['descripcion']) ?></small></td>
+                                    <td>
+                                        <span class="badge" style="background-color: <?= htmlspecialchars($trabajo['color_calendario']) ?>;">
+                                            <?= htmlspecialchars($trabajo['nombre_estado']) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+</file>
+
+<file path="src/views/perfil.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/">Cambiar datos del perfil</a>
+        <div class="d-flex align-items-center">
+            <a href="/panel" class="btn btn-outline-light btn-sm">Volver al panel</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            <?php if (!empty($mensajeExito)): ?>
+                <div class="alert alert-success"><?= htmlspecialchars($mensajeExito) ?></div>
+            <?php endif; ?>
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold text-center py-3">
+                    Modificar datos de usuario
+                </div>
+                <div class="card-body p-4">
+                    <form action="/perfil" method="POST">
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">Nombre</label>
+                            <input type="text" class="form-control" name="nombre" value="<?= htmlspecialchars($usuario['nombre']) ?>" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase">Correo</label>
+                            <input type="email" class="form-control" name="email" value="<?= htmlspecialchars($usuario['email']) ?>" required>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted small text-uppercase">Nueva contraseña</label>
+                            <input type="password" class="form-control" name="password" placeholder="Déjalo en blanco para mantener la actual">
+                            <div class="form-text">Solo rellena este campo si deseas cambiar tu contraseña de acceso.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+</file>
+
+<file path="src/views/registro.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/">ReparaYa</a>
+        <div class="d-flex">
+            <a href="/login" class="btn btn-outline-light me-2">Iniciar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-danger text-center" role="alert">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white text-center py-3">
+                    <h4 class="mb-0 text-primary">Crear cuenta</h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- método POST para enviar información sensible como contraseña -->
+                    <form action="/registro" method="POST">
+                        
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <!-- atributo 'name' para que PHP pueda usar esto para guardar información en una variable -->
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Registrarme</button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+</file>
+
+<file path="docker-compose.yml">
+# no añadimos versión ya que se usa directamente la última especificaciónd de sintaxis
+
+services:  # se definen los tres contenedores: 'web' para el servidor web, 'db' para base de datos y 'phpma' para la interfaz
+  web:
+    build: .  # trabajaremos con nuestra propia imagen, '.' es el directorio actual, donde tiene que buscar el Dockerfile
+    container_name: bep_web  # nombre del contenedor. 'bep' -> back end productos + nombre contenedor, lo mismo para el resto
+    ports:
+      - "8080:80"  # 8080 puerto local, 80 puerto del contenedor. cuando accedamos al localhopst:8080, docker lleva el tráfico al puerto 80 del contenedor para acceder a la app desde el navegador
+    volumes:
+      - ./:/var/www/html  # guardamos el código en la carpeta /src (modificación p2, no solo src, todas las carpetas) y aquí se vincula con la carpeta /var/www/html que está dentro del contenedor (apache lee aquí los archivos). cuando hagamos un cambio en /src se hará también en el servidor web del contenedor
+    depends_on:
+      - db  # el contenedor 'web' sólo se iniciará cuando el contenedor 'db' esté funcionando
+
+  db:
+    image: mysql:8.0
+    container_name: bep_db
+    restart: always  # reinicio automático del contenedor si falla, para que la bbdd siempre sté en fuincionamiento en segundo plano
+    environment:  # variables de entorno para el arranque de la bbdd: crear contraseña root, crear la bbdd llamada 'backend_:ddbb', y el usuario y la contraseña
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: backend_ddbb
+      MYSQL_USER: backend_user
+      MYSQL_PASSWORD: backend_userpassword
+    ports:
+      - "3307:3306"  # puerto standard de mysql, para acceder desde local
+    volumes:
+      - db_data:/var/lib/mysql  # igual que antes pero ahora mapeamos los datos de mysql con 'db_data' para guardarlos en la ruta, así se guardan si se borrara el contenedor ed mysql
+
+  phpma:
+    image: phpmyadmin/phpmyadmin
+    container_name: bep_phpma
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db # referencia para que phpmyadmin sepa a qué servidor de bbdd debe conectarse, que es el contenedor 'db' -> funciona como un dominio de red de docker
+      MYSQL_ROOT_PASSWORD: rootpassword
+    depends_on:
+      - db
+
+volumes:
+  db_data:  # definición del volumen que referenciamos en el contenedor 'db' para guardar los datos de mysql
+</file>
+
+<file path="Dockerfile">
+# imagen base que ya teníamos, sirve como base para después añadir extensiones
+FROM php:8.2-apache  
+
+# módulo de apache para escribir las urls de Laravel más sencillas 
+RUN a2enmod rewrite
+
+# hacemos que apache acepte el htaccess
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# instalamos las extensiones y paquetes para laravel
+# git y unzip para descargar y descomprimir librerías
+# libzip para que php pueda trabajar con zips
+# pdo_mysql para que php pueda trabajar con mysql (driver)
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    && docker-php-ext-install pdo_mysql zip
+
+# copiamos el archivo ejecutable de composer desde la imagen oficial, así se puede usar sin descargar ni instalar
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# hacemos que apache tome los archivos desde la carpeta /public de laravel
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# le decimos que cuando entremos a un contenedor trabajaremos en la carpeta del servidor web
+WORKDIR /var/www/html
+</file>
+
+<file path="src/controllers/AuthController.php">
+<?php
+// src/controllers/AuthController.php
+
+class AuthController {
+    
+
+    public function mostrarRegistro() { // método para mostrar el form de registro (petición GET) 
+        $datos = [
+            'titulo' => 'Registro de usuario'
+        ];
+        
+        $this->render('registro', $datos);
+    }
+
+    public function procesarRegistro() { // método para procesar los datos del formulario de registro
+        $nombre = $_POST['nombre'] ?? ''; // recogemos los datos
+        $email = $_POST['email'] ?? '';
+        $telefono = $_POST['telefono'] ?? '';
+        $password = $_POST['password'] ?? '';
+
+        if (empty($nombre) || empty($email) || empty($password)) { // validación de campos obligatorios
+            $this->render('registro', [
+                'titulo' => 'Registro',
+                'error' => 'Faltan campos obligatorios.'
+            ]);
+            return;
+        }
+
+        require_once '../src/models/Usuario.php'; // importamos el modelo Usuario
+        $db = conectarDB(); // obtenemos la conexión a la bbdd
+        $usuarioModel = new Usuario($db); // instanciamos el modelo con la conexión a la bbdd
+        $registroExitoso = $usuarioModel->registrar($nombre, $email, $password, $telefono); // ejecutamos el método de registrar y guardamos el resultado
+
+        if ($registroExitoso) { // decidimos qué mostrar
+            header('Location: /login?exito=1');
+            exit();
+        } else {
+            $this->render('registro', [
+                'titulo' => 'Registro - ReparaYa',
+                'error' => 'El correo electrónico ya está registrado.'
+            ]);
+        }
+    }
+
+    public function mostrarLogin() { // método para el login (petición GET)
+        $mensajeExito = isset($_GET['exito']) ? 'Registro completado, ahora iniciar sesión.' : ''; // recogemos la variable del registro éxito
+        $datos = [
+            'titulo' => 'Iniciar sesión',
+            'mensajeExito' => $mensajeExito
+        ];
+        $this->render('login', $datos);
+    }
+
+    public function procesarLogin() { // método para el login (petición POST)
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+
+        if (empty($email) || empty($password)) {
+            $this->render('login', [
+                'titulo' => 'Iniciar sesión',
+                'error' => 'Rellena todos los campos.'
+            ]);
+            return;
+        }
+
+        require_once '../src/models/Usuario.php'; // llamamos al modelo
+        $db = conectarDB();
+        $usuarioModel = new Usuario($db);
+        $usuarioLogueado = $usuarioModel->login($email, $password); // comprobamos credenciales
+
+        if ($usuarioLogueado) { // éxito, guardamos sesión
+            $_SESSION['usuario_id'] = $usuarioLogueado['id'];
+            $_SESSION['usuario_nombre'] = $usuarioLogueado['nombre'];
+            $_SESSION['usuario_rol'] = $usuarioLogueado['rol'];
+
+            header('Location: /panel'); // redirigimos a dashboard
+            exit();
+        } else {
+            $this->render('login', [
+                'titulo' => 'Iniciar sesión',
+                'error' => 'Correo o contraseña incorrectos.'
+            ]);
+        }
+    }
+
+    public function cerrarSesion() { // método para cerrar sesión
+        $_SESSION = []; // vaciamos variable de sesión
+        session_destroy();
+        header('Location: /'); // redirigimos a home
+        exit();
+    }
+
+    private function render($vista, $datos = []) { // método helper para cargar la vista
+        extract($datos);
+        $rutaVista = '../src/views/' . $vista . '.php';
+
+        if (file_exists($rutaVista)) {
+            require_once $rutaVista;
+        } else {
+            echo "Error Crítico: No se encuentra la vista $rutaVista";
+        }
+    }
+}
+</file>
+
+<file path="src/core/Router.php">
+<?php
+// src/core/Router.php
+
+class Router {
+    private $rutas = [ // array para almacenar las rutas
+        'GET' => [],
+        'POST' => []
+    ];
+
+    public function get($url, $controlador, $metodo) { // método para registrar ruta de url
+        $this->rutas['GET'][$url] = [
+            'controlador' => $controlador, 
+            'metodo' => $metodo
+        ];
+    }
+
+    public function post($url, $controlador, $metodo) { // método para registrar ruta de formulario
+        $this->rutas['POST'][$url] = [
+            'controlador' => $controlador, 
+            'metodo' => $metodo
+        ];
+    }
+
+
+    public function despachar() { // motyor del router: analizar url y cargar lo necesario
+        $url = $_SERVER['REQUEST_URI'] ?? '/'; // capturamos url
+        $url = strtok($url, '?'); // limpiamos url
+        $metodoHttp = $_SERVER['REQUEST_METHOD']; // comprobamos petición (GET o POST)
+
+        if (isset($this->rutas[$metodoHttp][$url])) { // verificamos que la ruta existe
+            $ruta = $this->rutas[$metodoHttp][$url];
+            $nombreControlador = $ruta['controlador'];
+            $nombreMetodo = $ruta['metodo'];
+
+            $rutaControlador = '../src/controllers/' . $nombreControlador . '.php'; // ruta física hasta el archivo de controlador
+            if (file_exists($rutaControlador)) { // comprobamos que el archivo exista
+                
+                require_once $rutaControlador; // importamos el archivo
+                $controladorObj = new $nombreControlador(); // instanciamos el controlador
+
+                if (method_exists($controladorObj, $nombreMetodo)) { // comprobamos que la función exista
+                    $controladorObj->$nombreMetodo(); // ejecutamos el método del controlador
+                } else {
+                    echo "<h3>Error de Código 500</h3>";
+                    echo "<p>El Controlador existe, pero no tiene una función llamada <b>$nombreMetodo</b>.</p>";
+                }
+            } else {
+                echo "<h3>Error de Código 500</h3>";
+                echo "<p>El Router intentó cargar <b>$rutaControlador</b> pero el archivo no existe.</p>";
+            }
+            
+        } else {
+            http_response_code(404); // si la url no existe, mandamos error de php
+            echo "<h2 style='color: red; font-family: sans-serif;'>Error 404 - Página no encontrada</h2>";
+            echo "<p>La ruta <b>$url</b> no existe en ReparaYa.</p>";
+        }
+    }
+}
+</file>
+
+<file path="src/views/home.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/">ReparaYa</a>
+        <div class="d-flex">
+            <?php if (isset($_SESSION['usuario_id'])): ?>
+                <span class="text-white me-3">
+                    Hola, <b><?= htmlspecialchars($_SESSION['usuario_nombre']) ?></b> 
+                    <span class="badge bg-info text-dark ms-1"><?= htmlspecialchars($_SESSION['usuario_rol']) ?></span>
+                </span>
+                <a href="/logout" class="btn btn-danger">Cerrar sesión</a>
+            <?php else: ?>
+                <a href="/login" class="btn btn-outline-light me-2">Iniciar sesión</a>
+                <a href="/registro" class="btn btn-light">Registrarse</a>
+            <?php endif; ?>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 fw-bold text-primary"><?= htmlspecialchars($titulo) ?></h1>
+            <p class="lead mt-3"><?= htmlspecialchars($mensaje) ?></p>
+            <hr class="my-4">
+            <p>Gestiona tus averías en un solo lugar.</p>
+            <a class="btn btn-primary btn-lg mt-3" href="/registro" role="button">Solicitar un Técnico</a>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <h3>Rápido</h3>
+            <p>Resolvemos tu problema cuanto antes.</p>
+        </div>
+        <div class="col-md-4">
+            <h3>Profesional</h3>
+            <p>Especialistas de todo tipo.</p>
+        </div>
+        <div class="col-md-4">
+            <h3>Transparente</h3>
+            <p>Seguimiento en tiempo real.</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+</file>
+
+<file path="src/views/panel_admin.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/">ReparaYa - ADMIN</a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
+            <a href="/calendario" class="btn btn-warning btn-sm me-2">Ver calendario</a>
+            <a href="/maestros" class="btn btn-info btn-sm me-2 text-white">Maestros</a>
+            <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
+            <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 mt-4">
+    <h2 class="mb-4">Panel de control</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white text-dark fw-bold d-flex justify-content-between align-items-center">
+            <span>Todas las incidencias</span>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoAviso">Nuevo aviso manual</button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Localizador</th>
+                            <th>Cliente</th>
+                            <th>Especialidad</th>
+                            <th>Fecha Servicio</th>
+                            <th>Estado</th>
+                            <th>Técnico Asignado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if(empty($todas_incidencias)): ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">No hay incidencias registradas.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach($todas_incidencias as $inc): ?>
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold"><?= htmlspecialchars($inc['localizador']) ?></span><br>
+                                        <?php if($inc['tipo_urgencia'] === 'Urgente'): ?>
+                                            <span class="badge bg-danger" style="font-size: 0.7em;">Urgente</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($inc['nombre_cliente']) ?></td>
+                                    <td><?= htmlspecialchars($inc['nombre_especialidad']) ?></td>
+                                    <td><?= date('d/m/Y H:i', strtotime($inc['fecha_servicio'])) ?></td>
+                                    <td>
+                                        <span class="badge" style="background-color: <?= htmlspecialchars($inc['color_calendario']) ?>;">
+                                            <?= htmlspecialchars($inc['nombre_estado']) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if($inc['nombre_tecnico']): ?>
+                                            <?= htmlspecialchars($inc['nombre_tecnico']) ?>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Sin asignar</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalGestionar<?= $inc['id'] ?>">Modificar</button>
+                                            
+                                            <form action="/eliminar-incidencia" method="POST" onsubmit="return confirm('ATENCIÓN: Vas a borrar este aviso de forma permanente. ¿Estás seguro?');">
+                                                <input type="hidden" name="incidencia_id" value="<?= $inc['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                            </form>
+                                        </div>
+
+                                        <div class="modal fade" id="modalGestionar<?= $inc['id'] ?>" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content text-start">
+                                                    <form action="/actualizar-incidencia" method="POST">
+                                                        <div class="modal-header bg-primary text-white">
+                                                            <h5 class="modal-title">Modificar aviso: <?= htmlspecialchars($inc['localizador']) ?></h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="incidencia_id" value="<?= $inc['id'] ?>">
+                                                            
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold">Asignar técnico</label>
+                                                                    <select class="form-select" name="tecnico_id">
+                                                                        <option value="">-- Sin asignar --</option>
+                                                                            <?php foreach($tecnicos as $tec): ?>
+                                                                                 <?php if($tec['especialidad_id'] == $inc['especialidad_id'] && ($tec['disponible'] || $inc['tecnico_id'] == $tec['id'])): ?>                                                                                    
+                                                                                    <option value="<?= $tec['id'] ?>" <?= ($inc['tecnico_id'] == $tec['id']) ? 'selected' : '' ?>>
+                                                                                        <?= htmlspecialchars($tec['nombre_completo']) ?>
+                                                                                    </option>
+                                                                            <?php endif; ?>                   
+                                                                        <?php endforeach; ?>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold">Estado</label>
+                                                                    <select class="form-select" name="estado_id" required>
+                                                                        <?php foreach($estados as $est): ?>
+                                                                            <option value="<?= $est['id'] ?>" <?= ($inc['estado_id'] == $est['id']) ? 'selected' : '' ?>>
+                                                                                <?= htmlspecialchars($est['nombre_estado']) ?>
+                                                                            </option>
+                                                                        <?php endforeach; ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold">Fecha y hora</label>
+                                                                    <input type="datetime-local" class="form-control" name="fecha_servicio" value="<?= date('Y-m-d\TH:i', strtotime($inc['fecha_servicio'])) ?>" required>
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label fw-bold">Urgencia</label>
+                                                                    <select class="form-select" name="tipo_urgencia" required>
+                                                                        <option value="Estándar" <?= ($inc['tipo_urgencia'] == 'Estándar') ? 'selected' : '' ?>>Estándar</option>
+                                                                        <option value="Urgente" <?= ($inc['tipo_urgencia'] == 'Urgente') ? 'selected' : '' ?>>Urgente</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Dirección</label>
+                                                                <input type="text" class="form-control" name="direccion" value="<?= htmlspecialchars($inc['direccion']) ?>" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Descripción</label>
+                                                                <textarea class="form-control" name="descripcion" rows="2" required><?= htmlspecialchars($inc['descripcion']) ?></textarea>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="modal-footer d-flex justify-content-between">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear nuevo aviso manual admin -->
+<div class="modal fade" id="modalNuevoAviso" tabindex="-1" aria-labelledby="modalNuevoAvisoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalNuevoAvisoLabel">Crear aviso manual</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/nueva-incidencia" method="POST">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cliente solicitante</label>
+                        <select class="form-select" name="cliente_id" required>
+                            <option value="">-- Selecciona un cliente --</option>
+                            <?php foreach($clientes as $cliente): ?>
+                                <option value="<?= $cliente['id'] ?>">
+                                    <?= htmlspecialchars($cliente['nombre']) ?> (<?= htmlspecialchars($cliente['email']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Especialidad</label>
+                        <select class="form-select" name="especialidad_id" required>
+                            <option value="">-- Selecciona una --</option>
+                            <?php foreach($especialidades as $esp): ?>
+                                <option value="<?= $esp['id'] ?>"><?= htmlspecialchars($esp['nombre_especialidad']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha y hora</label>
+                            <input type="datetime-local" class="form-control" name="fecha_servicio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Urgencia</label>
+                            <select class="form-select" name="tipo_urgencia" required>
+                                <option value="Estándar">Estándar</option>
+                                <option value="Urgente">Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Dirección</label>
+                        <input type="text" class="form-control" name="direccion" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Descripción</label>
+                        <textarea class="form-control" name="descripcion" rows="2" required></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Guardar aviso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+</file>
+
+<file path="src/views/panel_cliente.php">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/">ReparaYa - PARTICULAR</a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
+            <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
+            <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 mt-4">
+    
+    <?php if (!empty($mensajeExito)): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($mensajeExito) ?></div>
+    <?php endif; ?>
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white text-primary fw-bold">
+                    Solicitar técnico
+                </div>
+                <div class="card-body">
+                    <form action="/nueva-incidencia" method="POST">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Especialidad</label>
+                            <select class="form-select" name="especialidad_id" required>
+                                <option value="">-- Selecciona una --</option>
+                                <?php foreach($especialidades as $esp): ?>
+                                    <option value="<?= $esp['id'] ?>">
+                                        <?= htmlspecialchars($esp['nombre_especialidad']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de servicio</label>
+                            <select class="form-select" name="tipo_urgencia" required>
+                                <option value="Estándar">Estándar (Asignación normal)</option>
+                                <option value="Urgente">Urgente (Respuesta rápida)</option>
+                            </select>
+                            <div class="form-text text-danger" style="font-size: 0.85em;">
+                                * IMPORTANTE: Los servicios estándar requieren un mínimo de 48 horas de antelación. Si lo necesitas antes, selecciona Urgente.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha y hora</label>
+                            <input type="datetime-local" class="form-control" name="fecha_servicio" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Dirección física</label>
+                            <input type="text" class="form-control" name="direccion" placeholder="Calle, Número, Piso..." required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" rows="3" placeholder="Explica brevemente..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Crear solicitud</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white text-primary fw-bold">
+                    Mis Avisos
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Localizador</th>
+                                    <th>Especialidad</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Urgencia</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if(empty($mis_incidencias)): ?>
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            No tienes avisos registrados.
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach($mis_incidencias as $incidencia): ?>
+                                        <tr>
+                                            <td class="fw-bold"><?= htmlspecialchars($incidencia['localizador']) ?></td>
+                                            <td><?= htmlspecialchars($incidencia['nombre_especialidad']) ?></td>
+                                            <td><?= date('d/m/Y H:i', strtotime($incidencia['fecha_servicio'])) ?></td>
+                                            <td>
+                                                <span class="badge" style="background-color: <?= htmlspecialchars($incidencia['color_calendario']) ?>;">
+                                                    <?= htmlspecialchars($incidencia['nombre_estado']) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php if($incidencia['tipo_urgencia'] === 'Urgente'): ?>
+                                                    <span class="badge bg-danger">Urgente</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-secondary">Estándar</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if($incidencia['estado_id'] != 4 && $incidencia['estado_id'] != 5): ?>
+                                                    <form action="/cancelar-incidencia" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar?');">
+                                                        <input type="hidden" name="incidencia_id" value="<?= $incidencia['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar</button>
+                                                    </form>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+</file>
+
+<file path="src/controllers/DashboardController.php">
+<?php
+// src/controllers/DashboardController.php
+
+class DashboardController {
+    
+    public function index() {
+        if (!isset($_SESSION['usuario_id'])) { // check de login
+            header('Location: /login');
+            exit();
+        }
+
+        $rol = $_SESSION['usuario_rol'];
+        $cliente_id = $_SESSION['usuario_id'];
+        $datos = [
+            'titulo' => 'Mi Panel',
+            'nombre' => $_SESSION['usuario_nombre']
+        ];
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+
+        $datos['mensajeExito'] = $_GET['exito'] ?? null;
+        $datos['error'] = $_GET['error'] ?? null;
+
+        if (!function_exists('conectarDB')) {
+            echo "Error: Falta la conexión a la base de datos."; return;
+        }
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        if ($rol === 'admin') { // check de roles
+            require_once '../src/models/Usuario.php';
+            $usuarioModel = new Usuario($db);
+            $datos['todas_incidencias'] = $incidenciaModel->obtenerTodas();
+            $datos['especialidades'] = $incidenciaModel->obtenerEspecialidades();
+            $datos['clientes'] = $usuarioModel->obtenerClientes();
+            $datos['tecnicos'] = $incidenciaModel->obtenerTecnicos();
+            $datos['estados'] = $incidenciaModel->obtenerEstados();
+            $this->render('panel_admin', $datos);
+
+        } elseif ($rol === 'tecnico') {
+            $datos['mis_trabajos'] = $incidenciaModel->obtenerPorTecnico($_SESSION['usuario_id']);
+            $this->render('panel_tecnico', $datos);
+
+        } else {
+            $datos['especialidades'] = $incidenciaModel->obtenerEspecialidades();
+            $datos['mis_incidencias'] = $incidenciaModel->obtenerPorCliente($cliente_id);
+            $this->render('panel_cliente', $datos);
+        }
+    }
+
+    public function calendario() { // método para mostrar el calendario a admins
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+            header('Location: /login');
+            exit();
+        }
+
+        $datos = [
+            'titulo' => 'Calendario General - ReparaYa',
+            'nombre' => $_SESSION['usuario_nombre']
+        ];
+        
+        $this->render('calendario_admin', $datos);
+    }
+
+    private function render($vista, $datos = []) { // método para cargar las vistas
+        extract($datos);
+        $rutaVista = '../src/views/' . $vista . '.php';
+
+        if (file_exists($rutaVista)) {
+            require_once $rutaVista;
+        } else {
+            // TEXT TESTTTTT xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            echo "<div style='font-family: sans-serif; text-align: center; margin-top: 50px;'>";
+            echo "<h2>🚧 Panel en Construcción 🚧</h2>";
+            echo "<p>El sistema detecta tu rol, pero la vista <b>$vista.php</b> todavía no existe.</p>";
+            echo "<a href='/'>Volver al Inicio</a>";
+            echo "</div>";
+        }
+    }
+}
+</file>
+
+<file path="src/controllers/IncidenciaController.php">
+<?php
+// src/controllers/IncidenciaController.php
+
+class IncidenciaController {
+    
+    public function guardar() { // método para guardar el formulario
+        if (!isset($_SESSION['usuario_id'])) { // check login
+            header('Location: /login');
+            exit();
+        }
+
+        if ($_SESSION['usuario_rol'] === 'admin') {
+            $cliente_id = $_POST['cliente_id'] ?? ''; // si es admin, el id vene del form
+        } else {
+            $cliente_id = $_SESSION['usuario_id']; // si es cliente, el id viene de la sesión
+        }
+ 
+        // datos del formulario
+        $especialidad_id = $_POST['especialidad_id'] ?? '';
+        $tipo_urgencia = $_POST['tipo_urgencia'] ?? 'Estándar';
+        $fecha_servicio = $_POST['fecha_servicio'] ?? '';
+        $direccion = $_POST['direccion'] ?? '';
+        $descripcion = $_POST['descripcion'] ?? '';
+
+        if (empty($cliente_id) || empty($especialidad_id) || empty($fecha_servicio) || empty($direccion) || empty($descripcion)) { // check campos obligatorios
+            header('Location: /panel?error=Faltan datos obligatorios');
+            exit();
+        }
+
+        if ($tipo_urgencia === 'Estándar') { // validación 48h para estándar
+            $fechaSolicitadaObj = new DateTime($fecha_servicio); // convertimos fechas a objetos para poder comparar
+            $fechaMinimaPermitida = new DateTime(); // fecha actual + 48h
+            $fechaMinimaPermitida->modify('+48 hours');
+
+            if ($fechaSolicitadaObj < $fechaMinimaPermitida) { // rechazamos si es menor
+                header('Location: /panel?error=Los servicios estándar requieren 48h de antelación');
+                exit();
+            }
+        }
+
+        require_once '../src/config/database.php'; // guardamos en la bbdd
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        $exito = $incidenciaModel->crear($cliente_id, $especialidad_id, $tipo_urgencia, $fecha_servicio, $direccion, $descripcion);
+
+        if ($exito) {
+            header('Location: /panel?exito=Incidencia creada correctamente');
+        } else {
+            header('Location: /panel?error=Hubo un problema al guardar la incidencia.');
+        }
+        exit();
+    }
+
+    public function actualizar() { // método para actualizar datos de incidencia desde formulario para admins
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+            header('Location: /login');
+            exit();
+        }
+
+        $id = $_POST['incidencia_id'] ?? '';
+        $tecnico_id = $_POST['tecnico_id'] ?? '';
+        $estado_id = $_POST['estado_id'] ?? '';
+        $fecha_servicio = $_POST['fecha_servicio'] ?? '';
+        $tipo_urgencia = $_POST['tipo_urgencia'] ?? '';
+        $direccion = $_POST['direccion'] ?? '';
+        $descripcion = $_POST['descripcion'] ?? '';
+
+        if (empty($id) || empty($estado_id) || empty($fecha_servicio)) {
+            header('Location: /panel?error=Faltan datos para actualizar.');
+            exit();
+        }
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        $exito = $incidenciaModel->actualizar($id, $tecnico_id, $estado_id, $fecha_servicio, $tipo_urgencia, $direccion, $descripcion);
+
+        if ($exito) {
+            header('Location: /panel?exito=Aviso actualizado correctamente.');
+        } else {
+            header('Location: /panel?error=Hubo un problema al actualizar el aviso.');
+        }
+        exit();
+    }
+
+    public function apiTodas() { // API para traer datos de la bbdd en JSON y formatear calendario
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+            header('HTTP/1.1 403 Forbidden');
+            echo json_encode(['error' => 'No autorizado']);
+            exit();
+        }
+
+        // traemos los datos
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+        
+        $incidencias = $incidenciaModel->obtenerTodas();
+
+        $eventos = []; // fromatear el calendar
+        foreach ($incidencias as $inc) {
+            $color = ($inc['tipo_urgencia'] === 'Urgente') ? '#dc3545' : '#0d6efd'; // Rojo urgente, Azul estándar
+
+            $eventos[] = [
+                'id' => $inc['id'],
+                'title' => $inc['nombre_especialidad'] . ' - ' . $inc['localizador'],
+                'start' => $inc['fecha_servicio'],
+                'color' => $color,
+                'extendedProps' => [
+                    'cliente' => $inc['nombre_cliente'],
+                    'direccion' => $inc['direccion'],
+                    'descripcion' => $inc['descripcion'],
+                    'estado' => $inc['nombre_estado'],
+                    'tecnico' => $inc['nombre_tecnico'] ?? 'Sin asignar',
+                    'urgencia' => $inc['tipo_urgencia']
+                ]
+            ];
+        }
+
+        header('Content-Type: application/json'); // devuelve JSON
+        echo json_encode($eventos);
+        exit();
+    }
+
+    public function cancelar() { // método para cancelar una incidencia
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'particular') {
+            exit();
+        }
+
+        $incidencia_id = $_POST['incidencia_id'] ?? '';
+        $cliente_id = $_SESSION['usuario_id'];
+
+        if (empty($incidencia_id)) {
+            header('Location: /panel?error=Aviso no válido.');
+            exit();
+        }
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        $incidencia = $incidenciaModel->obtenerPorId($incidencia_id); // buscamos la incidencia para ver la fecha
+
+        if (!$incidencia || $incidencia['cliente_id'] != $cliente_id) { // comprobación que existe y es del user
+            header('Location: /panel?error=Operación no permitida.');
+            exit();
+        }
+
+        $fechaServicio = new DateTime($incidencia['fecha_servicio']); // calculamos el tiempo igual que al dar de alta
+        $fechaLimiteParaCancelar = new DateTime();
+        $fechaLimiteParaCancelar->modify('+48 hours');
+
+        if ($fechaServicio < $fechaLimiteParaCancelar) { // bloquemaos si es menor a 48h
+            header('Location: /panel?error=No se puede cancelar con menos de 48 horas de antelación');
+            exit();
+        }
+
+        if ($incidenciaModel->cancelarPorCliente($incidencia_id, $cliente_id)) {
+            header('Location: /panel?exito=Aviso cancelado correctamente.');
+        } else {
+            header('Location: /panel?error=Error al cancelar.');
+        }
+        exit();
+    }
+
+    public function eliminar() { // método para eliminar incidencia
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') exit();
+
+        $id = $_POST['incidencia_id'] ?? '';
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        if ($incidenciaModel->eliminar($id)) {
+            header('Location: /panel?exito=Aviso borrado de la base de datos.');
+        } else {
+            header('Location: /panel?error=Error al eliminar.');
+        }
+        exit();
+    }
+}
+</file>
+
+<file path="src/models/Incidencia.php">
+<?php
+// src/models/Incidencia.php
+
+class Incidencia {
+    private $db;
+
+    public function __construct($conexionDB) {
+        $this->db = $conexionDB;
+    }
+
+    public function obtenerEspecialidades() { // traemos las especialidades de la bbdd
+        $sql = "SELECT id, nombre_especialidad FROM especialidades";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerPorCliente($cliente_id) { // método para obtener incidencias por cliente
+        $sql = "SELECT i.*,   
+                       e.nombre_estado, 
+                       e.color_calendario, 
+                       esp.nombre_especialidad 
+                FROM incidencias i
+                INNER JOIN estados e ON i.estado_id = e.id
+                INNER JOIN especialidades esp ON i.especialidad_id = esp.id
+                WHERE i.cliente_id = :cliente_id
+                ORDER BY i.fecha_servicio DESC"; // join con estado y especialidad
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':cliente_id', $cliente_id);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function crear($cliente_id, $especialidad_id, $tipo_urgencia, $fecha_servicio, $direccion, $descripcion) { // método para crear incidencia
+        try {
+            $localizador = 'REP-' . strtoupper(substr(uniqid(), -8)); // localizador automático formateado
+
+            $sql = "INSERT INTO incidencias (localizador, cliente_id, especialidad_id, estado_id, descripcion, direccion, fecha_servicio, tipo_urgencia) 
+                    VALUES (:localizador, :cliente_id, :especialidad_id, 1, :descripcion, :direccion, :fecha_servicio, :tipo_urgencia)";
+            $stmt = $this->db->prepare($sql);
+            
+            return $stmt->execute([
+                ':localizador' => $localizador,
+                ':cliente_id' => $cliente_id,
+                ':especialidad_id' => $especialidad_id,
+                ':descripcion' => $descripcion,
+                ':direccion' => $direccion,
+                ':fecha_servicio' => $fecha_servicio,
+                ':tipo_urgencia' => $tipo_urgencia
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function obtenerTodas() { // método para tener todas las incidencias par admins
+        $sql = "SELECT i.*, 
+                       u.nombre AS nombre_cliente,
+                       e.nombre_estado, 
+                       e.color_calendario, 
+                       esp.nombre_especialidad,
+                       t.nombre_completo AS nombre_tecnico
+                FROM incidencias i
+                INNER JOIN usuarios u ON i.cliente_id = u.id
+                INNER JOIN estados e ON i.estado_id = e.id
+                INNER JOIN especialidades esp ON i.especialidad_id = esp.id
+                LEFT JOIN tecnicos t ON i.tecnico_id = t.id
+                ORDER BY i.fecha_servicio DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerTecnicos() { // método para obtener todos los te´cnicos
+        $sql = "SELECT t.id, 
+                       t.nombre_completo, 
+                       t.especialidad_id, 
+                       t.disponible, 
+                       e.nombre_especialidad 
+                FROM tecnicos t
+                INNER JOIN especialidades e ON t.especialidad_id = e.id
+                ORDER BY t.nombre_completo ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerEstados() { // método para obtener todos los estados
+        $sql = "SELECT id, nombre_estado FROM estados ORDER BY id ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizar($id, $tecnico_id, $estado_id, $fecha_servicio, $tipo_urgencia, $direccion, $descripcion) { // método para poder actualizar incidencia
+        try {
+            $tecnico_id = !empty($tecnico_id) ? $tecnico_id : null;
+
+            $sql = "UPDATE incidencias 
+                    SET tecnico_id = :tecnico_id, 
+                        estado_id = :estado_id,
+                        fecha_servicio = :fecha,
+                        tipo_urgencia = :urgencia,
+                        direccion = :direccion,
+                        descripcion = :descripcion
+                    WHERE id = :id";
+            
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                ':tecnico_id' => $tecnico_id,
+                ':estado_id' => $estado_id,
+                ':fecha' => $fecha_servicio,
+                ':urgencia' => $tipo_urgencia,
+                ':direccion' => $direccion,
+                ':descripcion' => $descripcion,
+                ':id' => $id
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function eliminar($id) { // méotod para poder eliminar una incidecnia
+        $sql = "DELETE FROM incidencias WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
+
+    public function obtenerPorTecnico($usuario_id) { // método para obtener incidecnais por te´cnico
+        $sql = "SELECT i.*, 
+                       u.nombre AS nombre_cliente,
+                       u.telefono AS telefono_cliente,
+                       e.nombre_estado, 
+                       e.color_calendario, 
+                       esp.nombre_especialidad
+                FROM incidencias i
+                INNER JOIN tecnicos t ON i.tecnico_id = t.id
+                INNER JOIN usuarios u ON i.cliente_id = u.id
+                INNER JOIN estados e ON i.estado_id = e.id
+                INNER JOIN especialidades esp ON i.especialidad_id = esp.id
+                WHERE t.usuario_id = :usuario_id
+                ORDER BY i.fecha_servicio ASC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':usuario_id', $usuario_id);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerPorId($id) { // método para buscar incidencia concreta
+        $sql = "SELECT * FROM incidencias WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function cancelarPorCliente($id, $cliente_id) { // método para cambiar estado a cancelada
+        $sql = "UPDATE incidencias SET estado_id = 5 WHERE id = :id AND cliente_id = :cliente_id"; // seguridad del propio cliente
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':id' => $id,
+            ':cliente_id' => $cliente_id
+        ]);
+    }
+}
+</file>
+
+<file path="src/models/Usuario.php">
+<?php
+// src/models/Usuario.php
+
+class Usuario {
+    private $db; // variable para guardar la conexión a la bbdd
+
+    public function __construct($conexionDB) { // instanciamos la clase con la conexión a la bbdd
+        $this->db = $conexionDB;
+    }
+
+    public function registrar($nombre, $email, $password, $telefono) { // método para registrar un nuevo usuario
+        try {
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT); // bycrypt para hash de contraseña
+
+            $sql = "INSERT INTO usuarios (nombre, email, password, telefono, rol)
+                    VALUES (:nombre, :email, :password, :telefono, 'particular')"; // consulta sql con marcadores (evitar inyecciones)
+            
+            $stmt = $this->db->prepare($sql);
+            
+            $stmt->bindParam(':nombre', $nombre); // vinculación de los datos con los marcadores de la consulta
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':password', $passwordHash);
+            $stmt->bindParam(':telefono', $telefono);
+
+            return $stmt->execute(); // ejecutamos la consulta
+            
+        } catch (PDOException $e) {
+            return false; // devolvemos false si hay error en la consulta, como correo existente o fallo de conexión
+        }
+    }
+
+    public function login($email, $password) { // método para verificar credenciales
+        $sql = "SELECT * FROM usuarios WHERE email = :email"; // buscamos correo en la bbdd
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC); // nos devuelve array con los datos si lo encuentra
+
+        if ($usuario && password_verify($password, $usuario['password'])) { // si existe, verificamos contraseña
+            unset($usuario['password']); 
+            return $usuario; // devolvemos el usuario
+        }
+        return false;
+    }
+
+    public function obtenerClientes() { // método para obtener usuarios
+        $sql = "SELECT id, nombre, email FROM usuarios WHERE rol = 'particular' ORDER BY nombre ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerPorId($id) { // método para obtener los datos del usuario
+        $sql = "SELECT id, nombre, email, rol FROM usuarios WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarPerfil($id, $nombre, $email, $password = null) { // método para actualizar los datos
+        try {
+            if (!empty($password)) { // actualización de contraseña con bycrypt
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "UPDATE usuarios SET nombre = :nombre, email = :email, password = :password WHERE id = :id";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bindParam(':password', $passwordHash);
+            } else {
+                $sql = "UPDATE usuarios SET nombre = :nombre, email = :email WHERE id = :id";
+                $stmt = $this->db->prepare($sql);
+            }
+
+            $stmt->bindParam(':nombre', $nombre);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':id', $id);
+
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function crearTecnico($nombre, $email, $telefono, $password, $especialidad_id) { // método para crear un técnico como admin
+        try {
+            $this->db->beginTransaction();
+
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT); // creación del user con login
+            $sql1 = "INSERT INTO usuarios (nombre, email, password, rol) VALUES (:nombre, :email, :password, 'tecnico')";
+            $stmt1 = $this->db->prepare($sql1);
+            $stmt1->execute([
+                ':nombre' => $nombre,
+                ':email' => $email,
+                ':telefono' => $telefono,
+                ':password' => $passwordHash
+            ]);
+            
+            $nuevo_usuario_id = $this->db->lastInsertId(); // id de mysql
+
+            // creación de la ficha del nuevo user tecnico
+            $sql2 = "INSERT INTO tecnicos (usuario_id, nombre_completo, especialidad_id, disponible) VALUES (:uid, :nombre, :esp_id, 1)";
+            $stmt2 = $this->db->prepare($sql2);
+            $stmt2->execute([
+                ':uid' => $nuevo_usuario_id,
+                ':nombre' => $nombre,
+                ':esp_id' => $especialidad_id
+            ]);
+
+            $this->db->commit(); // confrimamos cambios y creamos
+            return true;
+            
+        } catch (PDOException $e) { // si hay un error, rollback completo
+            $this->db->rollBack();
+            return false;
+        }
+    }
+
+    public function actualizarEstadoTecnico($tecnico_id, $nuevo_estado) { // método para cambiar el estado de un te´cnico por admin
+        $sql = "UPDATE tecnicos SET disponible = :estado WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':estado' => $nuevo_estado,
+            ':id' => $tecnico_id
+        ]);
+    }
+}
+</file>
+
+<file path="public/index.php">
+<?php
+session_start(); // motor de sesión
+require_once '../src/config/database.php'; // Configuración de la bbdd
+require_once '../src/core/Router.php'; // Clase router 
+$db = conectarDB();
+
+$router = new Router(); // Instancia del Router
+
+// REGISTRO DE RUTAS
+$router->get('/', 'HomeController', 'index');
+$router->get('/registro', 'AuthController', 'mostrarRegistro');
+$router->post('/registro', 'AuthController', 'procesarRegistro');
+$router->get('/login', 'AuthController', 'mostrarLogin');
+$router->post('/login', 'AuthController', 'procesarLogin');
+$router->get('/logout', 'AuthController', 'cerrarSesion');
+
+$router->get('/panel', 'DashboardController', 'index');
+$router->post('/nueva-incidencia', 'IncidenciaController', 'guardar');
+$router->post('/actualizar-incidencia', 'IncidenciaController', 'actualizar');
+$router->post('/cancelar-incidencia', 'IncidenciaController', 'cancelar');
+$router->post('/eliminar-incidencia', 'IncidenciaController', 'eliminar');
+
+$router->get('/calendario', 'DashboardController', 'calendario');
+$router->get('/api/incidencias', 'IncidenciaController', 'apiTodas');
+
+$router->get('/perfil', 'PerfilController', 'index');
+$router->post('/perfil', 'PerfilController', 'guardar');
+
+$router->get('/maestros', 'MaestrosController', 'index');
+$router->post('/maestros/nuevo-tecnico', 'MaestrosController', 'guardarTecnico');
+$router->post('/maestros/cambiar-estado', 'MaestrosController', 'cambiarEstado');
+
+$router->despachar(); // Que Router ea la URL y ejecute lo necesario
+</file>
+
+</files>

@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <base href="/~uocx1/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($titulo) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -55,6 +56,9 @@
                                 <option value="Estándar">Estándar (Asignación normal)</option>
                                 <option value="Urgente">Urgente (Respuesta rápida)</option>
                             </select>
+                            <div class="form-text text-danger" style="font-size: 0.85em;">
+                                * IMPORTANTE: Los servicios estándar requieren un mínimo de 48 horas de antelación. Si lo necesitas antes, selecciona Urgente.
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -93,6 +97,7 @@
                                     <th>Fecha</th>
                                     <th>Estado</th>
                                     <th>Urgencia</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -118,6 +123,14 @@
                                                     <span class="badge bg-danger">Urgente</span>
                                                 <?php else: ?>
                                                     <span class="badge bg-secondary">Estándar</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if($incidencia['estado_id'] != 4 && $incidencia['estado_id'] != 5): ?>
+                                                    <form action="/cancelar-incidencia" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar?');">
+                                                        <input type="hidden" name="incidencia_id" value="<?= $incidencia['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar</button>
+                                                    </form>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>

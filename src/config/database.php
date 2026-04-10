@@ -7,10 +7,10 @@
 
 // Credenciales bbdd
 // Docker local
-define('DB_HOST', 'db'); // El nombre del servicio del docker-compose
-define('DB_NAME', 'backend_ddbb');
-define('DB_USER', 'backend_user');
-define('DB_PASS', 'backend_userpassword');
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'wordpress1');
+define('DB_USER', 'wordpress1');
+define('DB_PASS', 'DWD8Ds3l4dvXpjZH');
 define('DB_CHARSET', 'utf8mb4');
 
 /**

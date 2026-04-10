@@ -27,6 +27,17 @@ class IncidenciaController {
             exit();
         }
 
+        if ($tipo_urgencia === 'Estándar') { // validación 48h para estándar
+            $fechaSolicitadaObj = new DateTime($fecha_servicio); // convertimos fechas a objetos para poder comparar
+            $fechaMinimaPermitida = new DateTime(); // fecha actual + 48h
+            $fechaMinimaPermitida->modify('+48 hours');
+
+            if ($fechaSolicitadaObj < $fechaMinimaPermitida) { // rechazamos si es menor
+                header('Location: /panel?error=Los servicios estándar requieren 48h de antelación');
+                exit();
+            }
+        }
+
         require_once '../src/config/database.php'; // guardamos en la bbdd
         require_once '../src/models/Incidencia.php';
         $db = conectarDB();
@@ -51,8 +62,12 @@ class IncidenciaController {
         $id = $_POST['incidencia_id'] ?? '';
         $tecnico_id = $_POST['tecnico_id'] ?? '';
         $estado_id = $_POST['estado_id'] ?? '';
+        $fecha_servicio = $_POST['fecha_servicio'] ?? '';
+        $tipo_urgencia = $_POST['tipo_urgencia'] ?? '';
+        $direccion = $_POST['direccion'] ?? '';
+        $descripcion = $_POST['descripcion'] ?? '';
 
-        if (empty($id) || empty($estado_id)) {
+        if (empty($id) || empty($estado_id) || empty($fecha_servicio)) {
             header('Location: /panel?error=Faltan datos para actualizar.');
             exit();
         }
@@ -62,7 +77,7 @@ class IncidenciaController {
         $db = conectarDB();
         $incidenciaModel = new Incidencia($db);
 
-        $exito = $incidenciaModel->actualizar($id, $tecnico_id, $estado_id);
+        $exito = $incidenciaModel->actualizar($id, $tecnico_id, $estado_id, $fecha_servicio, $tipo_urgencia, $direccion, $descripcion);
 
         if ($exito) {
             header('Location: /panel?exito=Aviso actualizado correctamente.');
@@ -109,6 +124,66 @@ class IncidenciaController {
 
         header('Content-Type: application/json'); // devuelve JSON
         echo json_encode($eventos);
+        exit();
+    }
+
+    public function cancelar() { // método para cancelar una incidencia
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'particular') {
+            exit();
+        }
+
+        $incidencia_id = $_POST['incidencia_id'] ?? '';
+        $cliente_id = $_SESSION['usuario_id'];
+
+        if (empty($incidencia_id)) {
+            header('Location: /panel?error=Aviso no válido.');
+            exit();
+        }
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        $incidencia = $incidenciaModel->obtenerPorId($incidencia_id); // buscamos la incidencia para ver la fecha
+
+        if (!$incidencia || $incidencia['cliente_id'] != $cliente_id) { // comprobación que existe y es del user
+            header('Location: /panel?error=Operación no permitida.');
+            exit();
+        }
+
+        $fechaServicio = new DateTime($incidencia['fecha_servicio']); // calculamos el tiempo igual que al dar de alta
+        $fechaLimiteParaCancelar = new DateTime();
+        $fechaLimiteParaCancelar->modify('+48 hours');
+
+        if ($fechaServicio < $fechaLimiteParaCancelar) { // bloquemaos si es menor a 48h
+            header('Location: /panel?error=No se puede cancelar con menos de 48 horas de antelación');
+            exit();
+        }
+
+        if ($incidenciaModel->cancelarPorCliente($incidencia_id, $cliente_id)) {
+            header('Location: /panel?exito=Aviso cancelado correctamente.');
+        } else {
+            header('Location: /panel?error=Error al cancelar.');
+        }
+        exit();
+    }
+
+    public function eliminar() { // método para eliminar incidencia
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') exit();
+
+        $id = $_POST['incidencia_id'] ?? '';
+
+        require_once '../src/config/database.php';
+        require_once '../src/models/Incidencia.php';
+        $db = conectarDB();
+        $incidenciaModel = new Incidencia($db);
+
+        if ($incidenciaModel->eliminar($id)) {
+            header('Location: /panel?exito=Aviso borrado de la base de datos.');
+        } else {
+            header('Location: /panel?error=Error al eliminar.');
+        }
         exit();
     }
 }

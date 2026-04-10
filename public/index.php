@@ -17,11 +17,17 @@ $router->get('/logout', 'AuthController', 'cerrarSesion');
 $router->get('/panel', 'DashboardController', 'index');
 $router->post('/nueva-incidencia', 'IncidenciaController', 'guardar');
 $router->post('/actualizar-incidencia', 'IncidenciaController', 'actualizar');
+$router->post('/cancelar-incidencia', 'IncidenciaController', 'cancelar');
+$router->post('/eliminar-incidencia', 'IncidenciaController', 'eliminar');
 
 $router->get('/calendario', 'DashboardController', 'calendario');
 $router->get('/api/incidencias', 'IncidenciaController', 'apiTodas');
 
 $router->get('/perfil', 'PerfilController', 'index');
 $router->post('/perfil', 'PerfilController', 'guardar');
+
+$router->get('/maestros', 'MaestrosController', 'index');
+$router->post('/maestros/nuevo-tecnico', 'MaestrosController', 'guardarTecnico');
+$router->post('/maestros/cambiar-estado', 'MaestrosController', 'cambiarEstado');
 
 $router->despachar(); // Que Router ea la URL y ejecute lo necesario
