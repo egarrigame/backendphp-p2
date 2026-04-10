@@ -5,7 +5,7 @@ class DashboardController {
     
     public function index() {
         if (!isset($_SESSION['usuario_id'])) { // check de login
-            header('Location: /login');
+            header('Location: /~uocx1/login');
             exit();
         }
 
@@ -16,8 +16,8 @@ class DashboardController {
             'nombre' => $_SESSION['usuario_nombre']
         ];
 
-        require_once '../src/config/database.php';
-        require_once '../src/models/Incidencia.php';
+        require_once 'src/config/database.php';
+        require_once 'src/models/Incidencia.php';
 
         $datos['mensajeExito'] = $_GET['exito'] ?? null;
         $datos['error'] = $_GET['error'] ?? null;
@@ -29,7 +29,7 @@ class DashboardController {
         $incidenciaModel = new Incidencia($db);
 
         if ($rol === 'admin') { // check de roles
-            require_once '../src/models/Usuario.php';
+            require_once 'src/models/Usuario.php';
             $usuarioModel = new Usuario($db);
             $datos['todas_incidencias'] = $incidenciaModel->obtenerTodas();
             $datos['especialidades'] = $incidenciaModel->obtenerEspecialidades();
@@ -51,7 +51,7 @@ class DashboardController {
 
     public function calendario() { // método para mostrar el calendario a admins
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
-            header('Location: /login');
+            header('Location: /~uocx1/login');
             exit();
         }
 
@@ -65,7 +65,7 @@ class DashboardController {
 
     private function render($vista, $datos = []) { // método para cargar las vistas
         extract($datos);
-        $rutaVista = '../src/views/' . $vista . '.php';
+        $rutaVista = 'src/views/' . $vista . '.php';
 
         if (file_exists($rutaVista)) {
             require_once $rutaVista;

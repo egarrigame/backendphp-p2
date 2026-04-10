@@ -11,9 +11,9 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">Cambiar datos del perfil</a>
+        <a class="navbar-brand" href="./">Cambiar datos del perfil</a>
         <div class="d-flex align-items-center">
-            <a href="/panel" class="btn btn-outline-light btn-sm">Volver al panel</a>
+            <a href="panel" class="btn btn-outline-light btn-sm">Volver al panel</a>
         </div>
     </div>
 </nav>
@@ -34,7 +34,7 @@
                     Modificar datos de usuario
                 </div>
                 <div class="card-body p-4">
-                    <form action="/perfil" method="POST">
+                    <form action="perfil" method="POST">
                         
                         <div class="mb-3">
                             <label class="form-label text-muted small text-uppercase">Nombre</label>

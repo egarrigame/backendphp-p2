@@ -1,7 +1,7 @@
 <?php
 session_start(); // motor de sesión
-require_once '../src/config/database.php'; // Configuración de la bbdd
-require_once '../src/core/Router.php'; // Clase router 
+require_once 'src/config/database.php'; // Configuración de la bbdd
+require_once 'src/core/Router.php'; // Clase router 
 $db = conectarDB();
 
 $router = new Router(); // Instancia del Router

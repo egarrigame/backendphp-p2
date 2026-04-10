@@ -11,11 +11,11 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">ReparaYa - PARTICULAR</a>
+        <a class="navbar-brand" href="./">ReparaYa - PARTICULAR</a>
         <div class="d-flex align-items-center">
             <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
-            <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
-            <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
+            <a href="perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
+            <a href="logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
         </div>
     </div>
 </nav>
@@ -36,7 +36,7 @@
                     Solicitar técnico
                 </div>
                 <div class="card-body">
-                    <form action="/nueva-incidencia" method="POST">
+                    <form action="nueva-incidencia" method="POST">
                         
                         <div class="mb-3">
                             <label class="form-label">Especialidad</label>
@@ -127,7 +127,7 @@
                                             </td>
                                             <td>
                                                 <?php if($incidencia['estado_id'] != 4 && $incidencia['estado_id'] != 5): ?>
-                                                    <form action="/cancelar-incidencia" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar?');">
+                                                    <form action="cancelar-incidencia" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar?');">
                                                         <input type="hidden" name="incidencia_id" value="<?= $incidencia['id'] ?>">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar</button>
                                                     </form>

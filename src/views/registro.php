@@ -11,9 +11,9 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" href="/">ReparaYa</a>
+        <a class="navbar-brand" href="./">ReparaYa</a>
         <div class="d-flex">
-            <a href="/login" class="btn btn-outline-light me-2">Iniciar sesión</a>
+            <a href="login" class="btn btn-outline-light me-2">Iniciar sesión</a>
         </div>
     </div>
 </nav>
@@ -34,7 +34,7 @@
                 </div>
                 <div class="card-body p-4">
                     <!-- método POST para enviar información sensible como contraseña -->
-                    <form action="/registro" method="POST">
+                    <form action="registro" method="POST">
                         
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre</label>

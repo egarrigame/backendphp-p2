@@ -12,12 +12,12 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">ReparaYa</a>
+        <a class="navbar-brand" href="./">ReparaYa</a>
         <div class="d-flex align-items-center">
             <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
-            <a href="/panel" class="btn btn-outline-light btn-sm me-2">📋 Ver tabla</a>
-            <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
-            <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
+            <a href="panel" class="btn btn-outline-light btn-sm me-2">📋 Ver tabla</a>
+            <a href="perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
+            <a href="logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
         </div>
     </div>
 </nav>
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay' // vistas
         },
-        events: '/api/incidencias', // nuestra api de php
+        events: 'api/incidencias', // nuestra api de php
         
         eventClick: function(info) { // click al detalle con los props
             info.jsEvent.preventDefault(); 

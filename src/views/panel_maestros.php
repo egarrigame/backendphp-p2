@@ -10,9 +10,9 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">ReparaYa - ADMIN</a>
+        <a class="navbar-brand" href="./">ReparaYa - ADMIN</a>
         <div class="d-flex align-items-center">
-            <a href="/panel" class="btn btn-outline-light btn-sm me-2">Volver al panel</a>
+            <a href="panel" class="btn btn-outline-light btn-sm me-2">Volver al panel</a>
         </div>
     </div>
 </nav>
@@ -69,7 +69,7 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <form action="/maestros/cambiar-estado" method="POST" style="display:inline;">
+                                                <form action="maestros/cambiar-estado" method="POST" style="display:inline;">
                                                     <input type="hidden" name="tecnico_id" value="<?= $tec['id'] ?>">
                                                     <input type="hidden" name="estado_actual" value="<?= $tec['disponible'] ?>">
                                                     <button type="submit" class="btn btn-sm <?= $tec['disponible'] ? 'btn-outline-danger' : 'btn-outline-success' ?>">
@@ -92,7 +92,7 @@
 
 <div class="modal fade" id="modalNuevoTecnico" tabindex="-1">
     <div class="modal-dialog">
-        <form action="/maestros/nuevo-tecnico" method="POST" class="modal-content">
+        <form action="maestros/nuevo-tecnico" method="POST" class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Alta técnico</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>

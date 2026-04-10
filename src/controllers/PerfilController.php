@@ -5,12 +5,12 @@ class PerfilController {
 
     public function index() { // méotod para mostrar el form de cambio de datos del perfil
         if (!isset($_SESSION['usuario_id'])) {
-            header('Location: /login');
+            header('Location: /~uocx1/login');
             exit();
         }
 
-        require_once '../src/config/database.php';
-        require_once '../src/models/Usuario.php';
+        require_once 'src/config/database.php';
+        require_once 'src/models/Usuario.php';
         $db = conectarDB();
         $usuarioModel = new Usuario($db);
 
@@ -26,7 +26,7 @@ class PerfilController {
 
     public function guardar() { // método para procesar los cambios (petición POST)
         if (!isset($_SESSION['usuario_id'])) {
-            header('Location: /login');
+            header('Location: /~uocx1/login');
             exit();
         }
 
@@ -36,12 +36,12 @@ class PerfilController {
         $password = $_POST['password'] ?? ''; // Opcional
 
         if (empty($nombre) || empty($email)) {
-            header('Location: /perfil?error=El nombre y el email son obligatorios.');
+            header('Location: /~uocx1/perfil?error=El nombre y el email son obligatorios.');
             exit();
         }
 
-        require_once '../src/config/database.php';
-        require_once '../src/models/Usuario.php';
+        require_once 'src/config/database.php';
+        require_once 'src/models/Usuario.php';
         $db = conectarDB();
         $usuarioModel = new Usuario($db);
 
@@ -50,15 +50,15 @@ class PerfilController {
         if ($exito) {
             $_SESSION['usuario_nombre'] = $nombre; // actualizamos la sesión si cambia el nombre (está en display en el navbar)
             
-            header('Location: /perfil?exito=Perfil actualizado correctamente.');
+            header('Location: /~uocx1/perfil?exito=Perfil actualizado correctamente.');
         } else {
-            header('Location: /perfil?error=Error al actualizar. Quizás el email ya esté en uso.');
+            header('Location: /~uocx1/perfil?error=Error al actualizar. Quizás el email ya esté en uso.');
         }
         exit();
     }
 
     private function render($vista, $datos = []) {
         extract($datos);
-        require_once '../src/views/' . $vista . '.php';
+        require_once 'src/views/' . $vista . '.php';
     }
 }

@@ -11,13 +11,13 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">ReparaYa - ADMIN</a>
+        <a class="navbar-brand" href="./">ReparaYa - ADMIN</a>
         <div class="d-flex align-items-center">
             <span class="text-white me-3">Hola, <b><?= htmlspecialchars($nombre) ?></b></span>
-            <a href="/calendario" class="btn btn-warning btn-sm me-2">Ver calendario</a>
-            <a href="/maestros" class="btn btn-info btn-sm me-2 text-white">Maestros</a>
-            <a href="/perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
-            <a href="/logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
+            <a href="calendario" class="btn btn-warning btn-sm me-2">Ver calendario</a>
+            <a href="maestros" class="btn btn-info btn-sm me-2 text-white">Maestros</a>
+            <a href="perfil" class="btn btn-outline-light me-2 btn-sm">Perfil</a>
+            <a href="logout" class="btn btn-danger btn-sm">Cerrar sesión</a>
         </div>
     </div>
 </nav>
@@ -77,7 +77,7 @@
                                         <div class="d-flex gap-1">
                                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalGestionar<?= $inc['id'] ?>">Modificar</button>
                                             
-                                            <form action="/eliminar-incidencia" method="POST" onsubmit="return confirm('ATENCIÓN: Vas a borrar este aviso de forma permanente. ¿Estás seguro?');">
+                                            <form action="eliminar-incidencia" method="POST" onsubmit="return confirm('ATENCIÓN: Vas a borrar este aviso de forma permanente. ¿Estás seguro?');">
                                                 <input type="hidden" name="incidencia_id" value="<?= $inc['id'] ?>">
                                                 <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                                             </form>
@@ -86,7 +86,7 @@
                                         <div class="modal fade" id="modalGestionar<?= $inc['id'] ?>" tabindex="-1" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered modal-lg">
                                                 <div class="modal-content text-start">
-                                                    <form action="/actualizar-incidencia" method="POST">
+                                                    <form action="actualizar-incidencia" method="POST">
                                                         <div class="modal-header bg-primary text-white">
                                                             <h5 class="modal-title">Modificar aviso: <?= htmlspecialchars($inc['localizador']) ?></h5>
                                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -172,7 +172,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <form action="/nueva-incidencia" method="POST">
+                <form action="nueva-incidencia" method="POST">
                     
                     <div class="mb-3">
                         <label class="form-label fw-bold">Cliente solicitante</label>

@@ -26,13 +26,13 @@ class AuthController {
             return;
         }
 
-        require_once '../src/models/Usuario.php'; // importamos el modelo Usuario
+        require_once 'src/models/Usuario.php'; // importamos el modelo Usuario
         $db = conectarDB(); // obtenemos la conexión a la bbdd
         $usuarioModel = new Usuario($db); // instanciamos el modelo con la conexión a la bbdd
         $registroExitoso = $usuarioModel->registrar($nombre, $email, $password, $telefono); // ejecutamos el método de registrar y guardamos el resultado
 
         if ($registroExitoso) { // decidimos qué mostrar
-            header('Location: /login?exito=1');
+            header('Location: /~uocx1/login?exito=1');
             exit();
         } else {
             $this->render('registro', [
@@ -63,7 +63,7 @@ class AuthController {
             return;
         }
 
-        require_once '../src/models/Usuario.php'; // llamamos al modelo
+        require_once 'src/models/Usuario.php'; // llamamos al modelo
         $db = conectarDB();
         $usuarioModel = new Usuario($db);
         $usuarioLogueado = $usuarioModel->login($email, $password); // comprobamos credenciales
@@ -73,7 +73,7 @@ class AuthController {
             $_SESSION['usuario_nombre'] = $usuarioLogueado['nombre'];
             $_SESSION['usuario_rol'] = $usuarioLogueado['rol'];
 
-            header('Location: /panel'); // redirigimos a dashboard
+            header('Location: /~uocx1/panel'); // redirigimos a dashboard
             exit();
         } else {
             $this->render('login', [
@@ -86,13 +86,13 @@ class AuthController {
     public function cerrarSesion() { // método para cerrar sesión
         $_SESSION = []; // vaciamos variable de sesión
         session_destroy();
-        header('Location: /'); // redirigimos a home
+        header('Location: /~uocx1/'); // redirigimos a home
         exit();
     }
 
     private function render($vista, $datos = []) { // método helper para cargar la vista
         extract($datos);
-        $rutaVista = '../src/views/' . $vista . '.php';
+        $rutaVista = 'src/views/' . $vista . '.php';
 
         if (file_exists($rutaVista)) {
             require_once $rutaVista;

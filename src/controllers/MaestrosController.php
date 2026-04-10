@@ -5,12 +5,12 @@ class MaestrosController {
 
     public function index() {
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
-            header('Location: /login');
+            header('Location: /~uocx1/login');
             exit();
         }
 
-        require_once '../src/config/database.php';
-        require_once '../src/models/Incidencia.php';
+        require_once 'src/config/database.php';
+        require_once 'src/models/Incidencia.php';
         $db = conectarDB();
         $incidenciaModel = new Incidencia($db);
 
@@ -37,21 +37,21 @@ class MaestrosController {
         $especialidad_id = $_POST['especialidad_id'] ?? '';
 
         if(empty($nombre) || empty($email) || empty($telefono) || empty($password) || empty($especialidad_id)) {
-            header('Location: /maestros?error=Faltan datos obligatorios');
+            header('Location: /~uocx1/maestros?error=Faltan datos obligatorios');
             exit();
         }
 
-        require_once '../src/config/database.php';
-        require_once '../src/models/Usuario.php';
+        require_once 'src/config/database.php';
+        require_once 'src/models/Usuario.php';
         $db = conectarDB();
         $usuarioModel = new Usuario($db);
 
         $exito = $usuarioModel->crearTecnico($nombre, $email, $telefono, $password, $especialidad_id);
 
         if ($exito) {
-            header('Location: /maestros?exito=Técnico dado de alta correctamente');
+            header('Location: /~uocx1/maestros?exito=Técnico dado de alta correctamente');
         } else {
-            header('Location: /maestros?error=Error al guardar.');
+            header('Location: /~uocx1/maestros?error=Error al guardar.');
         }
         exit();
     }
@@ -63,21 +63,21 @@ class MaestrosController {
         $estado_actual = $_POST['estado_actual'] ?? '0';
         $nuevo_estado = ($estado_actual == '1') ? 0 : 1;
 
-        require_once '../src/config/database.php';
-        require_once '../src/models/Usuario.php';
+        require_once 'src/config/database.php';
+        require_once 'src/models/Usuario.php';
         $db = conectarDB();
         $usuarioModel = new Usuario($db);
 
         if ($usuarioModel->actualizarEstadoTecnico($tecnico_id, $nuevo_estado)) {
-            header('Location: /maestros?exito=Estado del técnico actualizado');
+            header('Location: /~uocx1/maestros?exito=Estado del técnico actualizado');
         } else {
-            header('Location: /maestros?error=Error al cambiar el estado');
+            header('Location: /~uocx1/maestros?error=Error al cambiar el estado');
         }
         exit();
     }
 
     private function render($vista, $datos = []) {
         extract($datos);
-        require_once '../src/views/' . $vista . '.php';
+        require_once 'src/views/' . $vista . '.php';
     }
 }

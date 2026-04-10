@@ -24,6 +24,13 @@ class Router {
 
     public function despachar() { // motyor del router: analizar url y cargar lo necesario
         $url = $_SERVER['REQUEST_URI'] ?? '/'; // capturamos url
+
+        $url = str_replace('/~uocx1', '', $url); // sacamos la carpeta de la uoc
+        
+        if ($url === '') { // forzamos home al quedarse vacío
+            $url = '/';
+        }
+
         $url = strtok($url, '?'); // limpiamos url
         $metodoHttp = $_SERVER['REQUEST_METHOD']; // comprobamos petición (GET o POST)
 
@@ -32,7 +39,7 @@ class Router {
             $nombreControlador = $ruta['controlador'];
             $nombreMetodo = $ruta['metodo'];
 
-            $rutaControlador = '../src/controllers/' . $nombreControlador . '.php'; // ruta física hasta el archivo de controlador
+            $rutaControlador = 'src/controllers/' . $nombreControlador . '.php'; // ruta física hasta el archivo de controlador
             if (file_exists($rutaControlador)) { // comprobamos que el archivo exista
                 
                 require_once $rutaControlador; // importamos el archivo

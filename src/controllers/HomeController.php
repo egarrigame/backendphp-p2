@@ -6,7 +6,7 @@ class HomeController {
     
     public function index() { // método para llamar al router cuando alguien entre en index
         if (isset($_SESSION['usuario_id'])) {
-            header('Location: /panel');
+            header('Location: /~uocx1/panel');
             exit();
         }    
 
@@ -22,7 +22,7 @@ class HomeController {
 
         extract($datos); // sacamos variables de los array para convertirlas en variables normales y usarlas en el html, ej: $datos['titulo'] pasa a título
 
-        $rutaVista = '../src/views/' . $vista . '.php'; // ruta física para cargar la vista
+        $rutaVista = 'src/views/' . $vista . '.php'; // ruta física para cargar la vista
 
         if (file_exists($rutaVista)) { // comprobamos que la vista existe
             require_once $rutaVista;

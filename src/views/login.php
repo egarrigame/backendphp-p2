@@ -11,9 +11,9 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" href="/">ReparaYa</a>
+        <a class="navbar-brand" href="./">ReparaYa</a>
         <div class="d-flex">
-            <a href="/registro" class="btn btn-outline-light">Registrarse</a>
+            <a href="registro" class="btn btn-outline-light">Registrarse</a>
         </div>
     </div>
 </nav>
@@ -40,7 +40,7 @@
                 </div>
                 <div class="card-body p-4">
                     
-                    <form action="/login" method="POST">
+                    <form action="login" method="POST">
                         
                         <div class="mb-3">
                             <label for="email" class="form-label">Correo</label>
@@ -60,7 +60,7 @@
 
                 </div>
                 <div class="card-footer bg-white text-center py-3">
-                    <small>¿No tienes cuenta? <a href="/registro">Regístrate</a></small>
+                    <small>¿No tienes cuenta? <a href="registro">Regístrate</a></small>
                 </div>
             </div>
         </div>
