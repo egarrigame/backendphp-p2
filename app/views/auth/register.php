@@ -41,7 +41,7 @@
                     <div class="mb-3">
                         <label class="form-label">Contraseña</label>
                         <input type="password" name="password" class="form-control"
-                               placeholder="Mínimo 6 caracteres" required>
+                               placeholder="Mínimo 4 caracteres" required>
                     </div>
 
                     <button type="submit" class="btn btn-success w-100">

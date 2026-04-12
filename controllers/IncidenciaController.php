@@ -29,17 +29,9 @@ class IncidenciaController extends Controller
         }
 
         $fecha = $_POST['fecha_servicio'] ?? '';
+        $tipo = $_POST['tipo_urgencia'] ?? '';
 
-        // Se asegura que el formulario no rompa para el nuevo usuario por la tilde en estándar
-        $mapUrgencia = [
-            'estandar' => 'Estándar',
-            'urgente' => 'Urgente'
-        ];
-
-        $tipoInput = $_POST['tipo_urgencia'] ?? '';
-        $tipo = $mapUrgencia[$tipoInput] ?? '';
-
-        // VALIDACIÓN BÁSICA
+        // VALIDACIÓN
         if (
             empty($fecha) ||
             empty($tipo) ||
