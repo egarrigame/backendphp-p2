@@ -1,9 +1,10 @@
 CREATE DATABASE IF NOT EXISTS reparaya 
 CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
+
 USE reparaya;
 
--- 1. USUARIOS
+-- USUARIOS
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -14,19 +15,19 @@ CREATE TABLE usuarios (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. ESPECIALIDADES
+-- ESPECIALIDADES
 CREATE TABLE especialidades (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre_especialidad VARCHAR(50) NOT NULL
 );
 
--- 3. ESTADOS
+-- ESTADOS
 CREATE TABLE estados (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre_estado VARCHAR(50) NOT NULL
 );
 
--- 4. TECNICOS
+-- TECNICOS
 CREATE TABLE tecnicos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNIQUE,
@@ -37,7 +38,6 @@ CREATE TABLE tecnicos (
     FOREIGN KEY (especialidad_id) REFERENCES especialidades(id)
 );
 
--- 5. INCIDENCIAS
 CREATE TABLE incidencias (
     id INT AUTO_INCREMENT PRIMARY KEY,
     localizador VARCHAR(12) NOT NULL UNIQUE,
@@ -48,7 +48,7 @@ CREATE TABLE incidencias (
     descripcion TEXT NOT NULL,
     direccion VARCHAR(255) NOT NULL,
     fecha_servicio DATETIME NOT NULL,
-    tipo_urgencia ENUM('Estándar', 'Urgente') DEFAULT 'Estándar',
+    tipo_urgencia ENUM('estandar', 'urgente') DEFAULT 'estandar',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cliente_id) REFERENCES usuarios(id),
     FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id),
@@ -56,44 +56,16 @@ CREATE TABLE incidencias (
     FOREIGN KEY (estado_id) REFERENCES estados(id)
 );
 
--- índices
+-- ÍNDICES
 CREATE INDEX idx_cliente ON incidencias(cliente_id);
 CREATE INDEX idx_tecnico ON incidencias(tecnico_id);
 
--- =========================
--- DATOS INICIALES
--- =========================
-
-INSERT INTO usuarios (nombre, email, password, rol, telefono)
-VALUES 
-(
-    'Admin',
-    'admin@reparaya.com',
-    '$2y$10$wH6z6vJz3b1VvZrXrYlE2uC7xX5s9j3y6YpZ1cQzQ5n1Xz8YwZ9mK',
-    'admin',
-    '600000001'
-),
-(
-    'Root',
-    'root@uoc.edu',
-    '$2y$10$OY9/ySm63NNvDl93KcRVlOkFxa1a.9q93beevM7NRfq6MsTq9jEEW',
-    'admin',
-    '600000002'
-),
-(
-    'Cliente Test',
-    'cliente@uoc.com',
-    '$2y$10$OY9/ySm63NNvDl93KcRVlOkFxa1a.9q93beevM7NRfq6MsTq9jEEW',
-    'particular',
-    '600000003'
-),
-(
-    'Tecnico Test',
-    'tecnico@uoc.com',
-    '$2y$10$OY9/ySm63NNvDl93KcRVlOkFxa1a.9q93beevM7NRfq6MsTq9jEEW',
-    'tecnico',
-    '600000004'
-);
+-- DATOS
+INSERT INTO usuarios (nombre, email, password, rol, telefono) VALUES 
+('Admin','admin@reparaya.com','$2y$10$wH6z6vJz3b1VvZrXrYlE2uC7xX5s9j3y6YpZ1cQzQ5n1Xz8YwZ9mK','admin','600000001'),
+('Root','root@uoc.edu','$2y$10$OY9/ySm63NNvDl93KcRVlOkFxa1a.9q93beevM7NRfq6MsTq9jEEW','admin','600000002'),
+('Cliente Test','cliente@uoc.com','$2y$10$OY9/ySm63NNvDl93KcRVlOkFxa1a.9q93beevM7NRfq6MsTq9jEEW','particular','600000003'),
+('Tecnico Test','tecnico@uoc.com','$2y$10$OY9/ySm63NNvDl93KcRVlOkFxa1a.9q93beevM7NRfq6MsTq9jEEW','tecnico','600000004');
 
 INSERT INTO especialidades (nombre_especialidad) VALUES
 ('Fontanería'),
@@ -107,9 +79,6 @@ INSERT INTO estados (nombre_estado) VALUES
 ('Finalizada'),
 ('Cancelada');
 
--- =========================
--- TECNICO (ENLAZADO)
--- =========================
 INSERT INTO tecnicos (usuario_id, nombre_completo, especialidad_id, disponible)
 VALUES (
     (SELECT id FROM usuarios WHERE email = 'tecnico@uoc.com'),

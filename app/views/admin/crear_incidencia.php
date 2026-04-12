@@ -62,8 +62,8 @@
         <div class="mb-3">
             <label class="form-label">Tipo de servicio</label>
             <select name="tipo_urgencia" class="form-select" required>
-                <option value="Estándar">Estándar</option>
-                <option value="Urgente">Urgente</option>
+                <option value="estandar">Estándar</option>
+                <option value="urgente">Urgente</option>
             </select>
         </div>
 

@@ -46,13 +46,13 @@ h1, h2, h3 {
 
 /* ===== TABLAS ===== */
 .table {
-    background: white;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 15px rgba(0,0,0,0.05);
 }
 
-.table th {
+/* SOLO HEADER, NO FILAS */
+.table thead th {
     background-color: #f1f5f9;
     font-weight: 600;
     color: #334155;
@@ -60,6 +60,15 @@ h1, h2, h3 {
 
 .table td {
     vertical-align: middle;
+}
+
+/* respetar colores bootstrap */
+.table-success {
+    background-color: rgba(25, 135, 84, 0.15) !important;
+}
+
+.table-danger {
+    background-color: rgba(220, 53, 69, 0.15) !important;
 }
 
 /* ===== BOTONES ===== */
@@ -139,7 +148,6 @@ h1, h2, h3 {
 }
 
 /* ===== EVENTOS ===== */
-
 .evento-calendario {
     transition: all 0.2s ease;
 }
@@ -149,13 +157,13 @@ h1, h2, h3 {
     filter: brightness(1.1);
 }
 
+/* ===== MODAL ===== */
 .modal-content {
     border-radius: 12px;
     animation: scaleIn 0.2s ease;
 }
 
 /* ===== FIX LAYOUT ALTURA COMPLETA ===== */
-
 html, body {
     height: 100%;
 }
@@ -165,16 +173,12 @@ body {
     flex-direction: column;
 }
 
-/* Hace que el contenido crezca */
 .container {
     flex: 1;
-}
-
-/* Espacio inferior consistente */
-.container {
     padding-bottom: 60px;
 }
 
+/* ===== ANIMACIÓN ===== */
 @keyframes scaleIn {
     from {
         transform: scale(0.95);
