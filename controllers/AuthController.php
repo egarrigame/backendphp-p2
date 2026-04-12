@@ -14,13 +14,15 @@ class AuthController extends Controller
         $this->userModel = new User();
     }
 
-    // Mostrar login
     public function showLogin(): void
     {
-        $this->render('auth/login');
+        if (isset($_SESSION['user'])) {
+            $this->redirect('/cliente/dashboard');
+        }
+
+        $this->render('auth/login', [], 'auth');
     }
 
-    // Procesar login
     public function login(): void
     {
         if (!$this->isPost()) {
@@ -30,9 +32,13 @@ class AuthController extends Controller
         $email = trim($_POST['email'] ?? '');
         $password = trim($_POST['password'] ?? '');
 
-        // Validación básica
         if (empty($email) || empty($password)) {
             $_SESSION['error'] = 'Todos los campos son obligatorios';
+            $this->redirect('/login');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = 'Email no válido';
             $this->redirect('/login');
         }
 
@@ -43,7 +49,6 @@ class AuthController extends Controller
             $this->redirect('/login');
         }
 
-        // Guardar sesión
         $_SESSION['user'] = [
             'id' => $user['id'],
             'nombre' => $user['nombre'],
@@ -51,29 +56,21 @@ class AuthController extends Controller
             'rol' => $user['rol']
         ];
 
-        // Redirección por rol
         switch ($user['rol']) {
             case 'admin':
                 $this->redirect('/admin/dashboard');
-                break;
-
             case 'tecnico':
                 $this->redirect('/tecnico/agenda');
-                break;
-
             default:
                 $this->redirect('/cliente/dashboard');
-                break;
         }
     }
 
-    // Mostrar registro
     public function showRegister(): void
     {
-        $this->render('auth/register');
+        $this->render('auth/register', [], 'auth');
     }
 
-    // Procesar registro
     public function register(): void
     {
         if (!$this->isPost()) {
@@ -85,19 +82,21 @@ class AuthController extends Controller
         $telefono = trim($_POST['telefono'] ?? '');
         $password = trim($_POST['password'] ?? '');
 
-        // Validación
         if (empty($nombre) || empty($email) || empty($telefono) || empty($password)) {
             $_SESSION['error'] = 'Todos los campos son obligatorios';
             $this->redirect('/register');
         }
 
-        // Verificar si ya existe
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = 'Email no válido';
+            $this->redirect('/register');
+        }
+
         if ($this->userModel->findByEmail($email)) {
             $_SESSION['error'] = 'El email ya está registrado';
             $this->redirect('/register');
         }
 
-        // Hash de contraseña
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         $created = $this->userModel->create([
@@ -113,14 +112,24 @@ class AuthController extends Controller
             $this->redirect('/register');
         }
 
-        $_SESSION['success'] = 'Registro completado, ahora puedes iniciar sesión';
+        $_SESSION['success'] = 'Registro completado';
         $this->redirect('/login');
     }
 
-    // Logout
     public function logout(): void
     {
+        $_SESSION = [];
+
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+
         session_destroy();
+
         $this->redirect('/login');
     }
 }

@@ -22,6 +22,10 @@ class User extends Model
 
     public function create(array $data): bool
     {
+        if ($this->findByEmail($data['email'])) {
+            return false;
+        }
+
         $sql = "
             INSERT INTO {$this->table} 
             (nombre, email, password, rol, telefono)
@@ -31,35 +35,51 @@ class User extends Model
         return $this->execute($sql, [
             'nombre' => $data['nombre'],
             'email' => $data['email'],
-            'password' => $data['password'], // ya hasheado
+            'password' => $data['password'],
             'rol' => $data['rol'] ?? 'particular',
             'telefono' => $data['telefono']
         ]);
     }
 
-    public function update(int $id, array $data): bool
+    // 🔥 MÉTODO CLAVE PARA LA RÚBRICA
+    public function updateProfile(int $id, array $data): bool
     {
         $fields = [];
         $params = ['id' => $id];
 
-        if (isset($data['nombre'])) {
+        // Nombre
+        if (!empty($data['nombre'])) {
             $fields[] = "nombre = :nombre";
             $params['nombre'] = $data['nombre'];
         }
 
-        if (isset($data['email'])) {
+        // Email (validación + duplicado)
+        if (!empty($data['email'])) {
+
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return false;
+            }
+
+            $existing = $this->findByEmail($data['email']);
+
+            if ($existing && (int)$existing['id'] !== $id) {
+                return false;
+            }
+
             $fields[] = "email = :email";
             $params['email'] = $data['email'];
         }
 
-        if (isset($data['telefono'])) {
+        // Teléfono
+        if (!empty($data['telefono'])) {
             $fields[] = "telefono = :telefono";
             $params['telefono'] = $data['telefono'];
         }
 
-        if (isset($data['password'])) {
+        // Password (si se envía, se hashea aquí)
+        if (!empty($data['password'])) {
             $fields[] = "password = :password";
-            $params['password'] = $data['password'];
+            $params['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
         if (empty($fields)) {

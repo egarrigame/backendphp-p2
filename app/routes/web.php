@@ -29,12 +29,9 @@ $router->post('/perfil', [UserController::class, 'updatePerfil']);
 | Cliente
 |--------------------------------------------------------------------------
 */
-$router->get('/cliente/dashboard', [IncidenciaController::class, 'index']);
-$router->get('/cliente/mis-avisos', [IncidenciaController::class, 'misAvisos']);
+$router->get('/cliente/dashboard', [IncidenciaController::class, 'misAvisos']);
 $router->get('/cliente/nueva-incidencia', [IncidenciaController::class, 'create']);
 $router->post('/cliente/nueva-incidencia', [IncidenciaController::class, 'store']);
-$router->get('/cliente/editar-incidencia', [IncidenciaController::class, 'edit']);
-$router->post('/cliente/editar-incidencia', [IncidenciaController::class, 'update']);
 $router->post('/cliente/cancelar-incidencia', [IncidenciaController::class, 'cancel']);
 
 /*
@@ -44,8 +41,11 @@ $router->post('/cliente/cancelar-incidencia', [IncidenciaController::class, 'can
 */
 $router->get('/admin/dashboard', [AdminController::class, 'dashboard']);
 $router->get('/admin/calendario', [AdminController::class, 'calendario']);
-$router->get('/admin/incidencia-detalle', [AdminController::class, 'detalleIncidencia']);
+$router->get('/admin/incidencias', [AdminController::class, 'incidenciaDetalle']);
 $router->post('/admin/asignar-tecnico', [AdminController::class, 'asignarTecnico']);
+$router->post('/admin/cancelar-incidencia', [AdminController::class, 'cancelarIncidencia']);
+$router->get('/admin/crear-incidencia', [AdminController::class, 'crearIncidencia']);
+$router->post('/admin/crear-incidencia', [AdminController::class, 'storeIncidencia']);
 
 /*
 |--------------------------------------------------------------------------
@@ -53,16 +53,14 @@ $router->post('/admin/asignar-tecnico', [AdminController::class, 'asignarTecnico
 |--------------------------------------------------------------------------
 */
 $router->get('/tecnicos', [TecnicoController::class, 'index']);
-$router->get('/tecnicos/crear', [TecnicoController::class, 'create']);
 $router->post('/tecnicos/guardar', [TecnicoController::class, 'store']);
-$router->get('/tecnicos/editar', [TecnicoController::class, 'edit']);
 $router->post('/tecnicos/actualizar', [TecnicoController::class, 'update']);
 $router->post('/tecnicos/eliminar', [TecnicoController::class, 'delete']);
 $router->get('/tecnico/agenda', [TecnicoController::class, 'agenda']);
 
 /*
 |--------------------------------------------------------------------------
-| Especialidades / tipos de servicio
+| Especialidades
 |--------------------------------------------------------------------------
 */
 $router->get('/especialidades', [EspecialidadController::class, 'index']);

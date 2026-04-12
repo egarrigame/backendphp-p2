@@ -4,21 +4,34 @@ declare(strict_types=1);
 
 class Controller
 {
-    protected function render(string $view, array $data = []): void
+    protected function render(string $view, array $data = [], string $layout = 'app'): void
     {
         extract($data);
 
-        $viewPath = __DIR__ . '/../app/views/' . $view . '.php';
+        $basePath = __DIR__ . '/../app/views/';
+
+        // Intento 1: nombre tal cual
+        $viewPath = $basePath . $view . '.php';
+
+        // Intento 2: reemplazar - por _
+        if (!file_exists($viewPath)) {
+            $viewAlt = str_replace('-', '_', $view);
+            $viewPath = $basePath . $viewAlt . '.php';
+        }
 
         if (!file_exists($viewPath)) {
             http_response_code(404);
             die("La vista {$view} no existe.");
         }
 
-        require __DIR__ . '/../app/views/layouts/header.php';
-        require __DIR__ . '/../app/views/layouts/navbar.php';
-        require $viewPath;
-        require __DIR__ . '/../app/views/layouts/footer.php';
+        $layoutPath = $basePath . 'layouts/' . $layout . '.php';
+
+        if (!file_exists($layoutPath)) {
+            http_response_code(500);
+            die("El layout {$layout} no existe.");
+        }
+
+        require $layoutPath;
     }
 
     protected function redirect(string $url): void
@@ -35,5 +48,12 @@ class Controller
     protected function isGet(): bool
     {
         return $_SERVER['REQUEST_METHOD'] === 'GET';
+    }
+
+    protected function requireAuth(): void
+    {
+        if (!isset($_SESSION['user'])) {
+            $this->redirect('/login');
+        }
     }
 }

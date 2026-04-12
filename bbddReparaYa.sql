@@ -65,6 +65,11 @@ VALUES (
     'Admin',
     'admin@reparaya.com',
     '$2y$10$wH6z6vJz3b1VvZrXrYlE2uC7xX5s9j3y6YpZ1cQzQ5n1Xz8YwZ9mK',
+    'admin'),
+    (
+    'root',
+    'root@uoc.edu',
+    '$2y$10$OY9/ySm63NNvDl93KcRVlOkFxa1a.9q93beevM7NRfq6MsTq9jEEW',
     'admin'
 );
 

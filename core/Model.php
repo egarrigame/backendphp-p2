@@ -4,28 +4,38 @@ declare(strict_types=1);
 
 class Model
 {
+    protected static ?PDO $connection = null;
     protected PDO $db;
 
     public function __construct()
     {
-        $config = require __DIR__ . '/../app/config/database.php';
+        if (self::$connection === null) {
+            $config = require __DIR__ . '/../app/config/database.php';
 
-        $dsn = sprintf(
-            'mysql:host=%s;port=%s;dbname=%s;charset=%s',
-            $config['host'],
-            $config['port'],
-            $config['dbname'],
-            $config['charset']
-        );
+            $dsn = sprintf(
+                'mysql:host=%s;port=%s;dbname=%s;charset=%s',
+                $config['host'],
+                $config['port'],
+                $config['dbname'],
+                $config['charset']
+            );
 
-        try {
-            $this->db = new PDO($dsn, $config['username'], $config['password'], [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]);
-        } catch (PDOException $e) {
-            die('Error de conexión con la base de datos: ' . $e->getMessage());
+            try {
+                self::$connection = new PDO(
+                    $dsn,
+                    $config['username'],
+                    $config['password'],
+                    [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    ]
+                );
+            } catch (PDOException $e) {
+                die('Error de conexión con la base de datos: ' . $e->getMessage());
+            }
         }
+
+        $this->db = self::$connection;
     }
 
     protected function query(string $sql, array $params = []): PDOStatement
@@ -48,7 +58,8 @@ class Model
 
     protected function execute(string $sql, array $params = []): bool
     {
-        return $this->query($sql, $params) !== false;
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
     }
 
     public function getConnection(): PDO

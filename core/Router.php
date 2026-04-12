@@ -19,9 +19,17 @@ class Router
 
     public function resolve(string $requestUri, string $requestMethod): void
     {
-        $uri = $this->normalizeUri(parse_url($requestUri, PHP_URL_PATH) ?? '/');
+        $uri = parse_url($requestUri, PHP_URL_PATH) ?? '/';
 
-        $routes = strtoupper($requestMethod) === 'POST' ? $this->postRoutes : $this->getRoutes;
+        // 🔥 FIX: eliminar /index.php si aparece en la URL
+        $uri = str_replace('/index.php', '', $uri);
+
+        // normalizar URI
+        $uri = $this->normalizeUri($uri);
+
+        $routes = strtoupper($requestMethod) === 'POST'
+            ? $this->postRoutes
+            : $this->getRoutes;
 
         if (!isset($routes[$uri])) {
             http_response_code(404);
@@ -43,7 +51,13 @@ class Router
             die("El método {$methodName} no existe en {$controllerName}.");
         }
 
-        $controller->$methodName();
+        try {
+            $controller->$methodName();
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo "<h1>Error interno</h1>";
+            echo "<pre>" . $e->getMessage() . "</pre>";
+        }
     }
 
     private function normalizeUri(string $uri): string
