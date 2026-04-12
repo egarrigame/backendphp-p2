@@ -154,6 +154,27 @@ h1, h2, h3 {
     animation: scaleIn 0.2s ease;
 }
 
+/* ===== FIX LAYOUT ALTURA COMPLETA ===== */
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hace que el contenido crezca */
+.container {
+    flex: 1;
+}
+
+/* Espacio inferior consistente */
+.container {
+    padding-bottom: 60px;
+}
+
 @keyframes scaleIn {
     from {
         transform: scale(0.95);

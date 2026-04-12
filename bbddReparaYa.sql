@@ -1,4 +1,6 @@
-CREATE DATABASE IF NOT EXISTS reparaya;
+CREATE DATABASE IF NOT EXISTS reparaya 
+CHARACTER SET utf8mb4 
+COLLATE utf8mb4_unicode_ci;
 USE reparaya;
 
 -- 1. USUARIOS
@@ -96,7 +98,7 @@ VALUES
 INSERT INTO especialidades (nombre_especialidad) VALUES
 ('Fontanería'),
 ('Electricidad'),
-('Aire acondicionado');
+('Aire acondicionado'),
 ('Bricolaje');
 
 INSERT INTO estados (nombre_estado) VALUES

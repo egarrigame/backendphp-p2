@@ -13,6 +13,14 @@ class Incidencia extends Model
         return 'R' . strtoupper(substr(uniqid(), -6));
     }
 
+    public function getEstadoIdByNombre(string $nombre): int
+    {
+        $sql = "SELECT id FROM estados WHERE nombre_estado = :nombre LIMIT 1";
+        $result = $this->fetch($sql, ['nombre' => $nombre]);
+
+        return $result ? (int)$result['id'] : 0;
+    }
+
     public function validarRegla48h(string $fecha, string $tipo): bool
     {
         if ($tipo !== 'Estándar') {
@@ -31,6 +39,12 @@ class Incidencia extends Model
             return false;
         }
 
+        $estadoId = $this->getEstadoIdByNombre('Pendiente');
+
+        if ($estadoId === 0) {
+            return false; // seguridad extra
+        }
+
         $sql = "INSERT INTO {$this->table}
             (localizador, cliente_id, especialidad_id, estado_id, descripcion, direccion, fecha_servicio, tipo_urgencia)
             VALUES (:localizador, :cliente_id, :especialidad_id, :estado_id, :descripcion, :direccion, :fecha_servicio, :tipo_urgencia)";
@@ -39,7 +53,7 @@ class Incidencia extends Model
             'localizador' => $this->generarLocalizador(),
             'cliente_id' => $data['cliente_id'],
             'especialidad_id' => $data['especialidad_id'],
-            'estado_id' => 1,
+            'estado_id' => $estadoId,
             'descripcion' => $data['descripcion'],
             'direccion' => $data['direccion'],
             'fecha_servicio' => $data['fecha_servicio'],
@@ -105,11 +119,14 @@ class Incidencia extends Model
             return false;
         }
 
+        $estadoCancelado = $this->getEstadoIdByNombre('Cancelada');
+
         $sql = "UPDATE incidencias 
-                SET estado_id = 4 
+                SET estado_id = :estado_id 
                 WHERE id = :id AND cliente_id = :cliente_id";
 
         return $this->execute($sql, [
+            'estado_id' => $estadoCancelado,
             'id' => $id,
             'cliente_id' => $clienteId
         ]);
@@ -117,18 +134,27 @@ class Incidencia extends Model
 
     public function cancelAdmin(int $id): bool
     {
-        $sql = "UPDATE incidencias SET estado_id = 4 WHERE id = :id";
-        return $this->execute($sql, ['id' => $id]);
+        $estadoCancelado = $this->getEstadoIdByNombre('Cancelada');
+
+        $sql = "UPDATE incidencias SET estado_id = :estado_id WHERE id = :id";
+
+        return $this->execute($sql, [
+            'estado_id' => $estadoCancelado,
+            'id' => $id
+        ]);
     }
 
     public function assignTecnico(int $incidenciaId, int $tecnicoId): bool
     {
+        $estadoAsignado = $this->getEstadoIdByNombre('Asignada');
+
         $sql = "UPDATE incidencias 
-                SET tecnico_id = :tecnico_id, estado_id = 2 
+                SET tecnico_id = :tecnico_id, estado_id = :estado_id 
                 WHERE id = :id";
 
         return $this->execute($sql, [
             'tecnico_id' => $tecnicoId,
+            'estado_id' => $estadoAsignado,
             'id' => $incidenciaId
         ]);
     }
