@@ -7,11 +7,6 @@ El proyecto permite gestionar usuarios, incidencias y asignación de técnicos d
 
 ## 📁 Estructura del proyecto
 
-El proyecto sigue una estructura organizada basada en MVC:
-
-
-## 📁 Estructura del proyecto
-
 ```
 PHP-P2/
 
@@ -115,10 +110,10 @@ bbddReparaYa.sql
 - Admin → gestión completa
 root@uoc.edu / password: 123456
 
-Técnico → acceso a agenda
+- Técnico → acceso a agenda
 tecnico@uoc.com / password: 123456
 
-Cliente (particular) → creación y consulta de incidencias
+- Cliente (particular) → creación y consulta de incidencias
 cliente@uoc.com / password: 123456
 
 ## 🚀 Funcionalidades
